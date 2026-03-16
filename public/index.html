@@ -38,7 +38,6 @@
             flex-direction: column;
         }
 
-        /* Animated Background */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -70,7 +69,6 @@
             75% { transform: translate(-2%, 2%) rotate(-1deg); }
         }
 
-        /* Grid Pattern */
         .grid-pattern {
             position: fixed;
             top: 0;
@@ -84,7 +82,6 @@
             z-index: 1;
         }
 
-        /* Floating Particles */
         .particles {
             position: fixed;
             top: 0;
@@ -123,7 +120,6 @@
             75% { transform: translateY(-40px) translateX(5px); opacity: 0.4; }
         }
 
-        /* Candlestick Animation */
         .candlesticks {
             position: fixed;
             bottom: 0;
@@ -146,9 +142,7 @@
             animation: candleGrow 3s ease-in-out infinite;
         }
 
-        .candle.red {
-            background: #e74c3c;
-        }
+        .candle.red { background: #e74c3c; }
 
         .candle:nth-child(1) { height: 60px; animation-delay: 0s; }
         .candle:nth-child(2) { height: 90px; animation-delay: 0.2s; }
@@ -171,7 +165,6 @@
             50% { transform: scaleY(1.2); }
         }
 
-        /* Main Content */
         main {
             flex: 1;
             display: flex;
@@ -183,7 +176,6 @@
             z-index: 10;
         }
 
-        /* Logo */
         .logo-container {
             margin-bottom: 2rem;
             animation: fadeInDown 1s ease-out;
@@ -217,7 +209,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Coming Soon Badge */
         .coming-soon {
             display: inline-flex;
             align-items: center;
@@ -251,7 +242,6 @@
             text-transform: uppercase;
         }
 
-        /* Services Preview */
         .services {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -320,7 +310,6 @@
             letter-spacing: 1px;
         }
 
-        /* Newsletter */
         .newsletter {
             max-width: 500px;
             width: 100%;
@@ -342,7 +331,7 @@
             justify-content: center;
         }
 
-        .newsletter-form input {
+        .newsletter-form input[type="email"] {
             flex: 1;
             min-width: 250px;
             padding: 1rem 1.5rem;
@@ -355,13 +344,13 @@
             transition: all 0.3s ease;
         }
 
-        .newsletter-form input:focus {
+        .newsletter-form input[type="email"]:focus {
             outline: none;
             border-color: var(--verde-claro);
             background: rgba(92, 191, 138, 0.05);
         }
 
-        .newsletter-form input::placeholder {
+        .newsletter-form input[type="email"]::placeholder {
             color: var(--cinza-texto);
         }
 
@@ -384,7 +373,6 @@
             box-shadow: 0 10px 30px rgba(92, 191, 138, 0.3);
         }
 
-        /* Footer */
         footer {
             padding: 2rem;
             text-align: center;
@@ -449,82 +437,35 @@
             font-size: 0.85rem;
         }
 
-        /* Animations */
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
-            .logo {
-                font-size: 4rem;
-            }
-
-            .tagline {
-                font-size: 0.8rem;
-                letter-spacing: 4px;
-            }
-
-            .services {
-                grid-template-columns: 1fr;
-            }
-
-            .newsletter-form {
-                flex-direction: column;
-            }
-
-            .newsletter-form input {
-                min-width: 100%;
-            }
-
-            .contact-info {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-
-            .candlesticks {
-                height: 100px;
-            }
-
-            .candle {
-                width: 8px;
-            }
+            .logo { font-size: 4rem; }
+            .tagline { font-size: 0.8rem; letter-spacing: 4px; }
+            .services { grid-template-columns: 1fr; }
+            .newsletter-form { flex-direction: column; }
+            .newsletter-form input { min-width: 100%; }
+            .contact-info { flex-direction: column; gap: 0.75rem; }
+            .candlesticks { height: 100px; }
+            .candle { width: 8px; }
         }
 
-        /* Glow Effect on Logo Hover */
-        .logo-container:hover .logo-wiik {
-            text-shadow: 0 0 80px rgba(27, 77, 62, 0.8);
-        }
-
-        .logo-container:hover .logo-fx {
-            text-shadow: 0 0 80px rgba(92, 191, 138, 0.8);
-        }
+        .logo-container:hover .logo-wiik { text-shadow: 0 0 80px rgba(27, 77, 62, 0.8); }
+        .logo-container:hover .logo-fx { text-shadow: 0 0 80px rgba(92, 191, 138, 0.8); }
     </style>
 </head>
 <body>
-    <!-- Background Effects -->
     <div class="bg-animation"></div>
     <div class="grid-pattern"></div>
     
-    <!-- Floating Particles -->
     <div class="particles">
         <div class="particle"></div>
         <div class="particle"></div>
@@ -538,7 +479,6 @@
         <div class="particle"></div>
     </div>
 
-    <!-- Candlestick Animation -->
     <div class="candlesticks">
         <div class="candle"></div>
         <div class="candle red"></div>
@@ -557,9 +497,7 @@
         <div class="candle"></div>
     </div>
 
-    <!-- Main Content -->
     <main>
-        <!-- Logo -->
         <div class="logo-container">
             <div class="logo">
                 <span class="logo-wiik">Wiik</span><span class="logo-fx">FX</span>
@@ -567,13 +505,11 @@
             <p class="tagline">Forex Precision</p>
         </div>
 
-        <!-- Coming Soon Badge -->
         <div class="coming-soon">
             <div class="pulse-dot"></div>
             <span>Em Breve</span>
         </div>
 
-        <!-- Services Preview -->
         <div class="services">
             <div class="service-card">
                 <div class="service-icon">📊</div>
@@ -601,17 +537,18 @@
             </div>
         </div>
 
-        <!-- Newsletter -->
         <div class="newsletter">
             <h4>Seja o primeiro a saber quando lançarmos</h4>
-            <form class="newsletter-form" onsubmit="handleSubmit(event)">
-                <input type="email" placeholder="Seu melhor e-mail" required>
+            <form class="newsletter-form" action="https://formspree.io/f/xwvrrzlg" method="POST">
+                <input type="email" name="email" placeholder="Seu melhor e-mail" required>
+                <input type="hidden" name="_subject" value="Novo inscrito WiikFX!">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_next" value="https://wiikfx.com?submitted=true">
                 <button type="submit">Notifique-me</button>
             </form>
         </div>
     </main>
 
-    <!-- Footer -->
     <footer>
         <div class="social-links">
             <a href="https://t.me/WiikFX" class="social-link" target="_blank" title="Telegram">
@@ -633,34 +570,18 @@
         </div>
         
         <div class="contact-info">
-            <a href="https://t.me/WiikFX">
-                <span>📱</span> t.me/WiikFX
-            </a>
-            <a href="mailto:contato@wiikfx.com">
-                <span>📧</span> contato@wiikfx.com
-            </a>
+            <a href="https://t.me/WiikFX"><span>📱</span> t.me/WiikFX</a>
+            <a href="mailto:contato@wiikfx.com"><span>📧</span> contato@wiikfx.com</a>
         </div>
         
         <p class="copyright">© 2024 WiikFX. Todos os direitos reservados.</p>
     </footer>
 
     <script>
-        function handleSubmit(event) {
-            event.preventDefault();
-            const email = event.target.querySelector('input').value;
-            
-            // Aqui você pode integrar com seu serviço de email marketing
-            // Por enquanto, apenas mostra uma mensagem
-            alert('Obrigado! Você será notificado quando lançarmos. 🚀');
-            event.target.reset();
-        }
-
-        // Parallax effect on mouse move
         document.addEventListener('mousemove', (e) => {
             const particles = document.querySelectorAll('.particle');
             const x = e.clientX / window.innerWidth;
             const y = e.clientY / window.innerHeight;
-            
             particles.forEach((particle, index) => {
                 const speed = (index + 1) * 0.5;
                 const xOffset = (x - 0.5) * speed * 20;
@@ -668,6 +589,11 @@
                 particle.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
             });
         });
+
+        if (window.location.search.includes('submitted=true')) {
+            alert('✅ Obrigado! Você será notificado quando lançarmos. 🚀');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     </script>
 </body>
 </html>
