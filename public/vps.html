@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WiikFX — Forex VPS | Escolha seu Plano</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231B4D3E'/><text y='.9em' font-size='65' font-family='Arial' font-weight='900' x='8'><tspan fill='%234a9e72'>W</tspan><tspan fill='%235CBF8A'>FX</tspan></text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -73,7 +74,7 @@ body{font-family:'Outfit',sans-serif;background:var(--preto);color:var(--branco)
 /* ── Nav ── */
 nav{position:sticky;top:0;z-index:100;padding:0 24px;backdrop-filter:blur(16px);background:rgba(5,5,5,.75);border-bottom:1px solid rgba(92,191,138,.08);}
 .nav-inner{max-width:1100px;margin:0 auto;height:68px;display:flex;align-items:center;justify-content:space-between;}
-.logo{font-size:1.8rem;font-weight:900;letter-spacing:-1px;text-decoration:none;}
+.logo{font-size:1.3rem;font-weight:900;letter-spacing:-1px;text-decoration:none;}
 .logo .wiik{color:var(--verde-escuro);text-shadow:0 0 40px rgba(27,77,62,.5);}
 .logo .fx{color:var(--verde-claro);text-shadow:0 0 40px rgba(92,191,138,.5);}
 .nav-tag{font-size:.75rem;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:var(--cinza-texto);}
@@ -128,6 +129,10 @@ nav{position:sticky;top:0;z-index:100;padding:0 24px;backdrop-filter:blur(16px);
 .feat-check svg{width:10px;height:10px;stroke:var(--verde-claro);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
 
 .plan-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(92,191,138,.15),transparent);margin-bottom:1.5rem;}
+.period-selector{display:flex;gap:6px;margin-bottom:1.5rem;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;}
+.period-btn{flex:1;padding:.5rem .25rem;border:none;border-radius:9px;font-size:.72rem;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .2s ease;background:transparent;color:var(--cinza-texto);letter-spacing:.3px;}
+.period-btn.active{background:rgba(92,191,138,.15);color:var(--verde-claro);border:1px solid rgba(92,191,138,.3);}
+.period-badge{display:inline-block;font-size:.65rem;font-weight:700;padding:.15rem .4rem;border-radius:100px;margin-left:3px;background:rgba(92,191,138,.2);color:var(--verde-claro);}
 
 .btn-plan{width:100%;padding:1rem;border-radius:14px;font-size:1rem;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .3s ease;border:none;letter-spacing:.5px;}
 .btn-basic{background:rgba(92,191,138,.1);color:var(--verde-claro);border:1px solid rgba(92,191,138,.3);}
@@ -281,16 +286,20 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
         <div class="plan-icon basic">🖥️</div>
         <div class="plan-name">Plano</div>
         <div class="plan-title">Basic</div>
+        <div class="period-selector">
+          <button class="period-btn active" onclick="setPeriod('basic','mensal',this)">Mensal</button>
+          <button class="period-btn" onclick="setPeriod('basic','trimestral',this)">Trim. <span class="period-badge">-10%</span></button>
+          <button class="period-btn" onclick="setPeriod('basic','anual',this)">Anual <span class="period-badge">-15%</span></button>
+        </div>
         <div class="plan-price">
-          <div class="price-from">Avulso</div>
+          <div class="price-from" id="basic-label">Por mês</div>
           <div class="price-amount">
             <span class="price-currency">R$</span>
-            <span class="price-number">129</span>
-            <span class="price-period">/mês</span>
+            <span class="price-number" id="basic-price">129</span>
+            <span class="price-period" id="basic-suffix">/mês</span>
           </div>
-          <div class="price-sub-row">
-            <span class="price-discount-badge">-10% assinatura</span>
-            <span class="price-sub-value">R$ 116,10/mês</span>
+          <div class="price-sub-row" id="basic-total" style="display:none">
+            <span class="price-discount-badge" id="basic-total-label">Total: R$ 348,00</span>
           </div>
         </div>
         <ul class="plan-features">
@@ -313,16 +322,20 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
         <div class="plan-icon pro">🚀</div>
         <div class="plan-name">Plano</div>
         <div class="plan-title">Pro</div>
+        <div class="period-selector">
+          <button class="period-btn active" onclick="setPeriod('pro','mensal',this)">Mensal</button>
+          <button class="period-btn" onclick="setPeriod('pro','trimestral',this)">Trim. <span class="period-badge">-10%</span></button>
+          <button class="period-btn" onclick="setPeriod('pro','anual',this)">Anual <span class="period-badge">-15%</span></button>
+        </div>
         <div class="plan-price">
-          <div class="price-from">Avulso</div>
+          <div class="price-from" id="pro-label">Por mês</div>
           <div class="price-amount">
             <span class="price-currency">R$</span>
-            <span class="price-number">189</span>
-            <span class="price-period">/mês</span>
+            <span class="price-number" id="pro-price">189</span>
+            <span class="price-period" id="pro-suffix">/mês</span>
           </div>
-          <div class="price-sub-row">
-            <span class="price-discount-badge">-10% assinatura</span>
-            <span class="price-sub-value">R$ 170,10/mês</span>
+          <div class="price-sub-row" id="pro-total" style="display:none">
+            <span class="price-discount-badge" id="pro-total-label">Total: R$ 510,00</span>
           </div>
         </div>
         <ul class="plan-features">
@@ -362,7 +375,7 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
       <div class="specs-row"><div>Acesso RDP</div><div>✓</div><div class="highlight">✓</div></div>
       <div class="specs-row"><div>Uptime garantido</div><div>99.5%</div><div class="highlight">99.9%</div></div>
       <div class="specs-row"><div>Suporte</div><div>E-mail</div><div class="highlight">WhatsApp</div></div>
-      <div class="specs-row"><div>Avulso / Assinatura</div><div>R$ 129 / R$ 116,10</div><div class="highlight">R$ 189 / R$ 170,10</div></div>
+      <div class="specs-row"><div>Mensal / Trim. / Anual</div><div>R$129 / R$348 / R$1.316</div><div class="highlight">R$189 / R$510 / R$1.928</div></div>
     </div>
   </section>
 </div>
@@ -430,23 +443,7 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
       <button class="btn-close" onclick="closeModal()">✕</button>
     </div>
 
-    <!-- Tipo de cobrança -->
-    <div class="form-group">
-      <div class="form-label">Tipo de cobrança</div>
-      <div class="payment-methods">
-        <label class="pay-method active" onclick="selectTipo(this)">
-          <input type="radio" name="tipo" value="assinatura" checked>
-          <span class="pay-method-icon">🔄</span>
-          <span class="pay-method-label">Assinatura</span>
-        </label>
-        <label class="pay-method" onclick="selectTipo(this)">
-          <input type="radio" name="tipo" value="avulso">
-          <span class="pay-method-icon">📅</span>
-          <span class="pay-method-label">Mensal avulso</span>
-        </label>
-      </div>
-      <p id="tipo-desc" style="font-size:.78rem;color:#666;margin-top:.5rem;">Renovação automática todo mês. Cancele quando quiser.</p>
-    </div>
+
 
     <!-- Dados pessoais -->
     <div class="form-group">
@@ -465,7 +462,7 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
     <!-- Resumo -->
     <div class="order-summary">
       <div class="summary-row"><span>Plano</span><span id="sum-plan">Basic</span></div>
-      <div class="summary-row"><span>Cobrança</span><span id="sum-tipo">Assinatura mensal</span></div>
+      <div class="summary-row"><span>Período</span><span id="sum-periodo">Mensal</span></div>
       <div class="summary-row"><span>Setup</span><span>Gratuito</span></div>
       <div class="summary-divider"></div>
       <div class="summary-row summary-total"><span>Total hoje</span><span id="sum-total">R$ 129,00</span></div>
@@ -484,29 +481,52 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
 
 <script>
 let selectedPlan = 'basic';
-let selectedTipo = 'assinatura';
-const prices    = { basic: 129,    pro: 189    };
-const pricesSub = { basic: 116.10, pro: 170.10 };
-const labels    = { basic: 'Basic', pro: 'Pro' };
-const tipoDesc = {
-  assinatura: 'Renovação automática todo mês. Cancele quando quiser. (-10%)',
-  avulso: 'Cobrança única por mês. Você renova manualmente.'
-};
-const tipoLabel = {
-  assinatura: 'Assinatura mensal',
-  avulso: 'Mensal avulso'
-};
+const labels = { basic: 'Basic', pro: 'Pro' };
+const selectedPeriod = { basic: 'mensal', pro: 'mensal' };
 
-function getPreco(plan, tipo) {
-  return tipo === 'assinatura' ? pricesSub[plan] : prices[plan];
+const PRICES = {
+  basic: { mensal: 129, trimestral: 348, anual: 1315.80 },
+  pro:   { mensal: 189, trimestral: 510, anual: 1927.80  },
+};
+const PRICE_LABEL = {
+  mensal:     { from: 'Por mês',       suffix: '/mês',   total: null },
+  trimestral: { from: 'Por trimestre', suffix: '/trim.', total: 'Equivale a R$ {m}/mês' },
+  anual:      { from: 'Por ano',       suffix: '/ano',   total: 'Equivale a R$ {m}/mês' },
+};
+const PERIODO_LABEL = {
+  mensal: 'Mensal', trimestral: 'Trimestral (-10%)', anual: 'Anual (-15%)'
+};
+const MESES = { mensal: 1, trimestral: 3, anual: 12 };
+
+function setPeriod(plan, period, btn) {
+  selectedPeriod[plan] = period;
+  btn.closest('.period-selector').querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const preco = PRICES[plan][period];
+  const info = PRICE_LABEL[period];
+  const meses = MESES[period];
+  const porMes = (preco / meses).toFixed(2).replace('.', ',');
+  document.getElementById(plan + '-label').textContent = info.from;
+  document.getElementById(plan + '-price').textContent = preco.toFixed(2).replace('.', ',').replace(',00','');
+  document.getElementById(plan + '-suffix').textContent = info.suffix;
+  const totalEl = document.getElementById(plan + '-total');
+  const totalLabel = document.getElementById(plan + '-total-label');
+  if (info.total) {
+    totalEl.style.display = 'flex';
+    totalLabel.textContent = info.total.replace('{m}', porMes);
+  } else {
+    totalEl.style.display = 'none';
+  }
 }
 
 function openModal(plan) {
   selectedPlan = plan;
-  const preco = getPreco(plan, selectedTipo);
+  const period = selectedPeriod[plan];
+  const preco = PRICES[plan][period];
   document.getElementById('modal-plan-name').textContent = 'Plano ' + labels[plan];
-  document.getElementById('modal-price-label').textContent = 'R$ ' + preco.toFixed(2).replace('.', ',') + '/mês';
+  document.getElementById('modal-price-label').textContent = 'R$ ' + preco.toFixed(2).replace('.', ',');
   document.getElementById('sum-plan').textContent = labels[plan];
+  document.getElementById('sum-periodo').textContent = PERIODO_LABEL[period];
   document.getElementById('sum-total').textContent = 'R$ ' + preco.toFixed(2).replace('.', ',');
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -524,12 +544,6 @@ function handleOverlayClick(e) {
 function selectTipo(el) {
   document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
   el.classList.add('active');
-  selectedTipo = el.querySelector('input').value;
-  document.getElementById('tipo-desc').textContent = tipoDesc[selectedTipo];
-  document.getElementById('sum-tipo').textContent = tipoLabel[selectedTipo];
-  const preco = getPreco(selectedPlan, selectedTipo);
-  document.getElementById('sum-total').textContent = 'R$ ' + preco.toFixed(2).replace('.', ',');
-  document.getElementById('modal-price-label').textContent = 'R$ ' + preco.toFixed(2).replace('.', ',') + '/mês';
 }
 
 async function handleCheckout() {
@@ -543,11 +557,12 @@ async function handleCheckout() {
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin .8s linear infinite"><path d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2Z" opacity=".3"/><path d="M8 2a6 6 0 0 1 6 6"/></svg> Redirecionando...';
 
   try {
-    const endpoint = selectedTipo === 'assinatura' ? '/api/checkout/assinatura' : '/api/checkout/avulso';
-    const res = await fetch(endpoint, {
+    const period = selectedPeriod[selectedPlan];
+    const preco = PRICES[selectedPlan][period];
+    const res = await fetch('/api/checkout/avulso', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: selectedPlan, nome, email, whatsapp }),
+      body: JSON.stringify({ plan: selectedPlan, period, nome, email, whatsapp, preco }),
     });
     const data = await res.json();
     if (data.checkout_url) {
