@@ -28,17 +28,19 @@ app.get('/pendente', (req, res) => res.sendFile(path.join(__dirname, 'public', '
 
 // ── API: Checkout avulso ──────────────────────────────
 app.post('/api/checkout/avulso', async (req, res) => {
-  const { plan, nome, email, whatsapp } = req.body;
+  const { plan, period = 'mensal', nome, email, whatsapp } = req.body;
   if (!plan || !PLANS[plan]) return res.status(400).json({ error: 'Plano invalido' });
   if (!nome || !email) return res.status(400).json({ error: 'Nome e email obrigatorios' });
   const plano = PLANS[plan];
+  const preco = plano.prices[period] || plano.prices.mensal;
+  const titulo = `${plano.name} — ${PERIOD_LABEL[period]}`;
   try {
     const preference = new Preference(mp);
     const result = await preference.create({
       body: {
-        items: [{ title: plano.name, quantity: 1, unit_price: plano.price, currency_id: 'BRL' }],
+        items: [{ title: titulo, quantity: 1, unit_price: preco, currency_id: 'BRL' }],
         payer: { name: nome, email },
-        metadata: { plan, nome, email, whatsapp, tipo: 'avulso' },
+        metadata: { plan, period, nome, email, whatsapp, tipo: 'avulso' },
         back_urls: {
           success: `${BASE_URL}/sucesso`,
           failure: `${BASE_URL}/vps`,
@@ -145,7 +147,7 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
 });
 
 // ── Ativar VPS ────────────────────────────────────────
-async function ativarVPS({ plan, nome, email, whatsapp, tipo, mpPaymentId, mpPreapprovalId, valor }) {
+async function ativarVPS({ plan, period = 'mensal', nome, email, whatsapp, mpPaymentId, valor }) {
   console.log(`Ativando VPS ${plan} para ${email}`);
   const plano = PLANS[plan];
 
