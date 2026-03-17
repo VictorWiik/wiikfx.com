@@ -49,4 +49,3 @@ Acesse: http://localhost:3000
 
 **WiikFX — Forex Precision**
 📱 t.me/WiikFX | 📧 contato@wiikfx.com
-
