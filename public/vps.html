@@ -421,24 +421,25 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
       <button class="btn-close" onclick="closeModal()">✕</button>
     </div>
 
-    <!-- Payment method -->
+    <!-- Tipo de cobrança -->
     <div class="form-group">
-      <div class="form-label">Forma de pagamento</div>
+      <div class="form-label">Tipo de cobrança</div>
       <div class="payment-methods">
-        <label class="pay-method active" onclick="selectPay(this)">
-          <input type="radio" name="pay" value="pix" checked>
-          <span class="pay-method-icon">⚡</span>
-          <span class="pay-method-label">PIX</span>
+        <label class="pay-method active" onclick="selectTipo(this)">
+          <input type="radio" name="tipo" value="assinatura" checked>
+          <span class="pay-method-icon">🔄</span>
+          <span class="pay-method-label">Assinatura</span>
         </label>
-        <label class="pay-method" onclick="selectPay(this)">
-          <input type="radio" name="pay" value="card">
-          <span class="pay-method-icon">💳</span>
-          <span class="pay-method-label">Cartão</span>
+        <label class="pay-method" onclick="selectTipo(this)">
+          <input type="radio" name="tipo" value="avulso">
+          <span class="pay-method-icon">📅</span>
+          <span class="pay-method-label">Mensal avulso</span>
         </label>
       </div>
+      <p id="tipo-desc" style="font-size:.78rem;color:#666;margin-top:.5rem;">Renovação automática todo mês. Cancele quando quiser.</p>
     </div>
 
-    <!-- Personal data -->
+    <!-- Dados pessoais -->
     <div class="form-group">
       <label class="form-label" for="nome">Nome completo</label>
       <input class="form-input" id="nome" type="text" placeholder="Seu nome">
@@ -452,28 +453,10 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
       <input class="form-input" id="whatsapp" type="tel" placeholder="(11) 99999-9999">
     </div>
 
-    <!-- Card fields (shown when card selected) -->
-    <div id="card-fields" style="display:none">
-      <div class="form-group">
-        <label class="form-label" for="card-num">Número do cartão</label>
-        <input class="form-input" id="card-num" type="text" placeholder="0000 0000 0000 0000" maxlength="19">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="card-exp">Validade</label>
-          <input class="form-input" id="card-exp" type="text" placeholder="MM/AA" maxlength="5">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="card-cvv">CVV</label>
-          <input class="form-input" id="card-cvv" type="text" placeholder="123" maxlength="4">
-        </div>
-      </div>
-    </div>
-
-    <!-- Summary -->
+    <!-- Resumo -->
     <div class="order-summary">
       <div class="summary-row"><span>Plano</span><span id="sum-plan">Basic</span></div>
-      <div class="summary-row"><span>Período</span><span>Mensal</span></div>
+      <div class="summary-row"><span>Cobrança</span><span id="sum-tipo">Assinatura mensal</span></div>
       <div class="summary-row"><span>Setup</span><span>Gratuito</span></div>
       <div class="summary-divider"></div>
       <div class="summary-row summary-total"><span>Total hoje</span><span id="sum-total">R$ 129,00</span></div>
@@ -481,7 +464,7 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
 
     <button class="btn-checkout" id="btn-checkout" onclick="handleCheckout()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z"/><path d="M11 5V4a3 3 0 0 0-6 0v1"/></svg>
-      Confirmar e contratar
+      Ir para pagamento
     </button>
     <div class="secure-note">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 1L2 3v4c0 2.5 1.9 4.7 4.5 5.3C9.1 11.7 11 9.5 11 7V3L6.5 1Z"/></svg>
@@ -492,8 +475,17 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
 
 <script>
 let selectedPlan = 'basic';
+let selectedTipo = 'assinatura';
 const prices = { basic: 129, pro: 189 };
 const labels = { basic: 'Basic', pro: 'Pro' };
+const tipoDesc = {
+  assinatura: 'Renovação automática todo mês. Cancele quando quiser.',
+  avulso: 'Cobrança única por mês. Você renova manualmente.'
+};
+const tipoLabel = {
+  assinatura: 'Assinatura mensal',
+  avulso: 'Mensal avulso'
+};
 
 function openModal(plan) {
   selectedPlan = plan;
@@ -514,26 +506,42 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('modal')) closeModal();
 }
 
-function selectPay(el) {
+function selectTipo(el) {
   document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
   el.classList.add('active');
-  const val = el.querySelector('input').value;
-  document.getElementById('card-fields').style.display = val === 'card' ? 'block' : 'none';
+  selectedTipo = el.querySelector('input').value;
+  document.getElementById('tipo-desc').textContent = tipoDesc[selectedTipo];
+  document.getElementById('sum-tipo').textContent = tipoLabel[selectedTipo];
 }
 
-function handleCheckout() {
+async function handleCheckout() {
   const nome = document.getElementById('nome').value.trim();
   const email = document.getElementById('email').value.trim();
+  const whatsapp = document.getElementById('whatsapp').value.trim();
   if (!nome || !email) { alert('Por favor, preencha nome e e-mail para continuar.'); return; }
+
   const btn = document.getElementById('btn-checkout');
   btn.disabled = true;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin .8s linear infinite"><path d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2Z" opacity=".3"/><path d="M8 2a6 6 0 0 1 6 6"/></svg> Processando...';
-  setTimeout(() => {
-    closeModal();
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin .8s linear infinite"><path d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2Z" opacity=".3"/><path d="M8 2a6 6 0 0 1 6 6"/></svg> Redirecionando...';
+
+  try {
+    const endpoint = selectedTipo === 'assinatura' ? '/api/checkout/assinatura' : '/api/checkout/avulso';
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: selectedPlan, nome, email, whatsapp }),
+    });
+    const data = await res.json();
+    if (data.checkout_url) {
+      window.location.href = data.checkout_url;
+    } else {
+      throw new Error(data.error || 'Erro desconhecido');
+    }
+  } catch (err) {
+    alert('Erro ao iniciar pagamento: ' + err.message);
     btn.disabled = false;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z"/><path d="M11 5V4a3 3 0 0 0-6 0v1"/></svg> Confirmar e contratar';
-    alert('Pedido recebido! Em breve você receberá os dados de acesso no e-mail: ' + email);
-  }, 2000);
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z"/><path d="M11 5V4a3 3 0 0 0-6 0v1"/></svg> Ir para pagamento';
+  }
 }
 
 function toggleFaq(btn) {
