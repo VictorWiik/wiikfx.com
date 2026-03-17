@@ -1,0 +1,27 @@
+{
+  "name": "wiikfx-website",
+  "version": "1.0.0",
+  "description": "WiikFX - Forex Precision",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "forex",
+    "trading",
+    "wiikfx"
+  ],
+  "author": "WiikFX",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mercadopago": "^2.0.15",
+    "resend": "^3.2.0",
+    "dotenv": "^16.4.5",
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
