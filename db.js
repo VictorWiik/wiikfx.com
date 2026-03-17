@@ -28,7 +28,6 @@ async function initDB() {
       senha VARCHAR(100),
       porta INTEGER DEFAULT 3389,
       proxmox_node VARCHAR(50) DEFAULT 'pve',
-      preapproval_id VARCHAR(100),
       criado_em TIMESTAMP DEFAULT NOW(),
       expira_em TIMESTAMP
     );
@@ -60,14 +59,14 @@ async function upsertCliente({ nome, email, whatsapp }) {
 }
 
 // Criar VM no banco
-async function criarVMBanco({ clienteId, plano, tipoCobranca, vmid, ip, senha, preapprovalId }) {
+async function criarVMBanco({ clienteId, plano, tipoCobranca, vmid, ip, senha, meses = 1 }) {
   const expira = new Date();
-  expira.setMonth(expira.getMonth() + 1);
+  expira.setMonth(expira.getMonth() + meses);
   const res = await pool.query(`
-    INSERT INTO vms (cliente_id, plano, tipo_cobranca, status, vmid, ip, senha, preapproval_id, expira_em)
-    VALUES ($1, $2, $3, 'ativa', $4, $5, $6, $7, $8)
+    INSERT INTO vms (cliente_id, plano, tipo_cobranca, status, vmid, ip, senha, expira_em)
+    VALUES ($1, $2, $3, 'ativa', $4, $5, $6, $7)
     RETURNING *
-  `, [clienteId, plano, tipoCobranca, vmid || null, ip, senha, preapprovalId || null, expira]);
+  `, [clienteId, plano, tipoCobranca, vmid || null, ip, senha, expira]);
   return res.rows[0];
 }
 
