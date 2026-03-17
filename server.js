@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const { Resend } = require('resend');
+const { initDB, upsertCliente, criarVMBanco, registrarPagamento } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,13 +20,13 @@ const PLANS = {
   pro:   { name: 'WiikFX VPS Pro',   price: 189.00, ram: '6GB', cpu: '4 vCPUs', disk: '40GB SSD' },
 };
 
-// Páginas
+// ── Páginas ───────────────────────────────────────────
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/vps', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vps.html')));
 app.get('/sucesso', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sucesso.html')));
 app.get('/pendente', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pendente.html')));
 
-// API: Checkout avulso (mensal manual)
+// ── API: Checkout avulso ──────────────────────────────
 app.post('/api/checkout/avulso', async (req, res) => {
   const { plan, nome, email, whatsapp } = req.body;
   if (!plan || !PLANS[plan]) return res.status(400).json({ error: 'Plano invalido' });
@@ -55,7 +56,7 @@ app.post('/api/checkout/avulso', async (req, res) => {
   }
 });
 
-// API: Checkout assinatura recorrente
+// ── API: Checkout assinatura ──────────────────────────
 app.post('/api/checkout/assinatura', async (req, res) => {
   const { plan, nome, email, whatsapp } = req.body;
   if (!plan || !PLANS[plan]) return res.status(400).json({ error: 'Plano invalido' });
@@ -91,7 +92,7 @@ app.post('/api/checkout/assinatura', async (req, res) => {
   }
 });
 
-// Webhook Mercado Pago
+// ── Webhook Mercado Pago ──────────────────────────────
 app.post('/api/webhook/mercadopago', async (req, res) => {
   res.sendStatus(200);
   const { type, data } = req.body;
@@ -102,7 +103,10 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
       if (payment.status !== 'approved') return;
       const meta = payment.metadata || {};
       if (!meta.plan || !meta.email) return;
-      await ativarVPS({ plan: meta.plan, nome: meta.nome, email: meta.email });
+      await ativarVPS({
+        plan: meta.plan, nome: meta.nome, email: meta.email, whatsapp: meta.whatsapp,
+        tipo: 'avulso', mpPaymentId: String(data.id), valor: payment.transaction_amount,
+      });
     }
     if (type === 'subscription_preapproval' && data?.id) {
       const r = await fetch(`https://api.mercadopago.com/preapproval/${data.id}`, {
@@ -112,32 +116,51 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
       if (sub.status !== 'authorized') return;
       const ref = JSON.parse(sub.external_reference || '{}');
       if (!ref.plan || !ref.email) return;
-      await ativarVPS({ plan: ref.plan, nome: ref.nome, email: ref.email });
+      await ativarVPS({
+        plan: ref.plan, nome: ref.nome, email: ref.email, whatsapp: ref.whatsapp,
+        tipo: 'assinatura', mpPreapprovalId: String(data.id),
+        valor: PLANS[ref.plan]?.price,
+      });
     }
   } catch (err) {
     console.error('Erro webhook:', err);
   }
 });
 
-async function ativarVPS({ plan, nome, email }) {
+// ── Ativar VPS ────────────────────────────────────────
+async function ativarVPS({ plan, nome, email, whatsapp, tipo, mpPaymentId, mpPreapprovalId, valor }) {
   console.log(`Ativando VPS ${plan} para ${email}`);
   const plano = PLANS[plan];
+
+  const cliente = await upsertCliente({ nome, email, whatsapp });
+
   let vmInfo;
   if (process.env.PROXMOX_HOST && process.env.PROXMOX_HOST !== 'https://ip_do_servidor:8006') {
     vmInfo = await criarVMProxmox({ plan, email });
   } else {
-    vmInfo = { ip: '000.000.000.000', usuario: 'Administrator', senha: gerarSenha(), porta: 3389 };
-    console.log('Proxmox nao configurado — dados simulados:', vmInfo);
+    vmInfo = { ip: '000.000.000.000', usuario: 'Administrator', senha: gerarSenha(), porta: 3389, vmid: null };
+    console.log('Proxmox nao configurado — simulando:', vmInfo);
   }
+
+  const vm = await criarVMBanco({
+    clienteId: cliente.id, plano: plan, tipoCobranca: tipo,
+    vmid: vmInfo.vmid, ip: vmInfo.ip, senha: vmInfo.senha,
+    preapprovalId: mpPreapprovalId,
+  });
+
+  await registrarPagamento({
+    vmId: vm.id, clienteId: cliente.id,
+    mpPaymentId, mpPreapprovalId, tipo, status: 'aprovado', valor,
+  });
+
   await enviarEmailBoasVindas({ nome, email, plan: plano, vmInfo });
-  console.log(`VPS ativada para ${email} — IP: ${vmInfo.ip}`);
+
+  console.log(`VPS ativada — cliente: ${email}, IP: ${vmInfo.ip}`);
 }
 
+// ── Criar VM no Proxmox ───────────────────────────────
 async function criarVMProxmox({ plan, email }) {
-  const SPECS = {
-    basic: { memory: 4096, cores: 2 },
-    pro:   { memory: 6144, cores: 4 },
-  };
+  const SPECS = { basic: { memory: 4096, cores: 2 }, pro: { memory: 6144, cores: 4 } };
   const spec = SPECS[plan];
   const vmid = 200 + Math.floor(Math.random() * 800);
   const senha = gerarSenha();
@@ -160,6 +183,7 @@ async function criarVMProxmox({ plan, email }) {
   return { ip: 'A definir', usuario: 'Administrator', senha, porta: 3389, vmid };
 }
 
+// ── Email de boas-vindas ──────────────────────────────
 async function enviarEmailBoasVindas({ nome, email, plan, vmInfo }) {
   await resend.emails.send({
     from: process.env.EMAIL_FROM || 'WiikFX <noreply@wiikfx.com>',
@@ -193,10 +217,18 @@ async function enviarEmailBoasVindas({ nome, email, plan, vmInfo }) {
   });
 }
 
+// ── Utilitários ───────────────────────────────────────
 function gerarSenha() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
   return Array.from({ length: 14 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
+// ── Fallback ──────────────────────────────────────────
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// ── Iniciar servidor ──────────────────────────────────
 app.listen(PORT, () => console.log(`WiikFX rodando na porta ${PORT}`));
+
+initDB().catch(err => {
+  console.error('Aviso: erro ao inicializar banco:', err.message);
+});
