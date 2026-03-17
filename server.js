@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const mp = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const PLANS = {
   basic: { name: 'WiikFX VPS Basic', price: 129.00, ram: '4GB', cpu: '2 vCPUs', disk: '40GB SSD' },
@@ -94,6 +94,23 @@ app.post('/api/checkout/assinatura', async (req, res) => {
 
 // ── Webhook Mercado Pago ──────────────────────────────
 app.post('/api/webhook/mercadopago', async (req, res) => {
+  // Validar assinatura secreta do MP
+  if (process.env.MP_WEBHOOK_SECRET) {
+    const crypto = require('crypto');
+    const xSignature = req.headers['x-signature'] || '';
+    const xRequestId = req.headers['x-request-id'] || '';
+    const urlParams = new URLSearchParams(req.query);
+    const dataId = urlParams.get('data.id') || req.body?.data?.id || '';
+    const manifest = `id:${dataId};request-id:${xRequestId};ts:${xSignature.split(',').find(p => p.startsWith('ts='))?.split('=')[1] || ''};`;
+    const ts = xSignature.split(',').find(p => p.startsWith('ts='))?.split('=')[1] || '';
+    const v1 = xSignature.split(',').find(p => p.startsWith('v1='))?.split('=')[1] || '';
+    const hash = crypto.createHmac('sha256', process.env.MP_WEBHOOK_SECRET).update(`id:${dataId};request-id:${xRequestId};ts:${ts};`).digest('hex');
+    if (v1 && hash !== v1) {
+      console.warn('Webhook com assinatura invalida — ignorado');
+      return res.sendStatus(200);
+    }
+  }
+
   res.sendStatus(200);
   const { type, data } = req.body;
   try {
@@ -190,6 +207,7 @@ async function criarVMProxmox({ plan, email }) {
 
 // ── Email de boas-vindas ──────────────────────────────
 async function enviarEmailBoasVindas({ nome, email, plan, vmInfo }) {
+  if (!resend) { console.warn('Resend nao configurado — email nao enviado'); return; }
   await resend.emails.send({
     from: process.env.EMAIL_FROM || 'WiikFX <noreply@wiikfx.com>',
     to: email,
