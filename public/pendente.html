@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiikFX — Pagamento pendente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--amarelo:#F5A623;--preto:#050505;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--preto);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 50% 40%,rgba(245,166,35,.12) 0%,transparent 55%);}
+.grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(245,166,35,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(245,166,35,.02) 1px,transparent 1px);background-size:60px 60px;}
+.card{position:relative;z-index:10;background:rgba(13,13,13,.9);border:1px solid rgba(245,166,35,.2);border-radius:24px;padding:3rem 2.5rem;max-width:480px;width:100%;text-align:center;animation:fadeUp .7s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.logo{font-size:1.8rem;font-weight:900;letter-spacing:-1px;margin-bottom:2rem;display:block;text-decoration:none;}
+.logo .wiik{color:#1B4D3E;}.logo .fx{color:#5CBF8A;}
+.clock{width:80px;height:80px;border-radius:50%;background:rgba(245,166,35,.1);border:2px solid rgba(245,166,35,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2.2rem;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+h1{font-size:1.6rem;font-weight:800;margin-bottom:.6rem;}
+.subtitle{color:#888;font-size:.95rem;line-height:1.7;margin-bottom:2rem;}
+.info-box{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:12px;padding:1.2rem 1.5rem;margin-bottom:2rem;}
+.info-box p{font-size:.88rem;color:#aaa;line-height:1.7;}
+.info-box strong{color:var(--amarelo);}
+.btns{display:flex;justify-content:center;flex-wrap:wrap;gap:.75rem;}
+.btn{display:inline-block;padding:.9rem 2rem;background:#5CBF8A;color:#050505;border-radius:12px;font-size:.95rem;font-weight:700;font-family:'Outfit',sans-serif;text-decoration:none;transition:all .3s ease;}
+.btn:hover{background:#4CAF7A;transform:translateY(-2px);}
+.btn-outline{display:inline-block;padding:.9rem 2rem;background:transparent;color:#5CBF8A;border:1px solid rgba(92,191,138,.3);border-radius:12px;font-size:.95rem;font-weight:600;font-family:'Outfit',sans-serif;text-decoration:none;transition:all .3s ease;}
+.btn-outline:hover{background:rgba(92,191,138,.08);}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="card">
+  <a href="/" class="logo"><span class="wiik">Wiik</span><span class="fx">FX</span></a>
+  <div class="clock">⏳</div>
+  <h1>Pagamento pendente</h1>
+  <p class="subtitle">Seu pagamento está sendo processado. Assim que for confirmado, sua VPS será ativada automaticamente.</p>
+  <div class="info-box">
+    <p><strong>PIX:</strong> o pagamento é confirmado em instantes. Se ainda não pagou, verifique o app do seu banco.<br><br>
+    <strong>Boleto:</strong> pode levar até 3 dias úteis para compensar.</p>
+  </div>
+  <div class="btns">
+    <a href="https://t.me/WiikFX" class="btn" target="_blank">Falar com suporte</a>
+    <a href="/" class="btn-outline">Voltar ao início</a>
+  </div>
+</div>
+</body>
+</html>
