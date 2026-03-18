@@ -76,6 +76,90 @@ app.post('/api/auth/logout', async (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Auth: Login com senha ────────────────────────────
+app.post('/api/auth/login-senha', async (req, res) => {
+  const { email, senha } = req.body;
+  if (!email || !senha) return res.status(400).json({ error: 'Email e senha obrigatorios' });
+
+  const cliente = await getClienteComSenha(email);
+  if (!cliente) return res.status(404).json({ error: 'Email nao encontrado' });
+  if (!cliente.senha_hash) return res.status(400).json({ error: 'sem_senha', msg: 'Voce ainda nao tem senha. Use o link magico para acessar e defina uma senha nas configuracoes.' });
+
+  const hash = hashSenha(senha);
+  if (hash !== cliente.senha_hash) return res.status(401).json({ error: 'Senha incorreta' });
+
+  const sessionToken = await criarSessao(cliente.id);
+  res.setHeader('Set-Cookie', `wiikfx_session=${sessionToken}; Path=/; HttpOnly; Max-Age=2592000; SameSite=Lax`);
+  res.json({ ok: true });
+});
+
+// ── Auth: Solicitar link para definir senha ───────────
+app.post('/api/auth/solicitar-senha', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email obrigatorio' });
+
+  const cliente = await getClienteByEmail(email);
+  if (!cliente) return res.status(404).json({ error: 'Email nao encontrado' });
+
+  const token = await criarTokenSenha(cliente.id);
+  const link = `${BASE_URL}/definir-senha?token=${token}`;
+
+  if (resend) {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'WiikFX <noreply@wiikfx.com>',
+      to: email,
+      subject: 'Defina sua senha WiikFX',
+      html: `
+        <div style="font-family:Arial,sans-serif;background:#050505;color:#fff;padding:40px;max-width:480px;margin:0 auto;border-radius:16px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <span style="font-size:2rem;font-weight:900;"><span style="color:#1B4D3E">Wiik</span><span style="color:#5CBF8A">FX</span></span>
+          </div>
+          <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Defina sua senha</h2>
+          <p style="color:#888;margin-bottom:24px;font-size:.9rem;">Clique no botão abaixo para definir sua senha de acesso. O link expira em 30 minutos.</p>
+          <a href="${link}" style="display:block;text-align:center;background:#5CBF8A;color:#050505;padding:14px;border-radius:12px;font-weight:700;text-decoration:none;font-size:1rem;">Definir minha senha</a>
+          <p style="color:#444;font-size:.75rem;margin-top:20px;text-align:center;">Se nao solicitou, ignore este email.</p>
+        </div>
+      `,
+    });
+  }
+  res.json({ ok: true });
+});
+
+// ── Auth: Definir senha via token ─────────────────────
+app.post('/api/auth/definir-senha', async (req, res) => {
+  const { token, senha } = req.body;
+  if (!token || !senha) return res.status(400).json({ error: 'Token e senha obrigatorios' });
+  if (senha.length < 8) return res.status(400).json({ error: 'Senha deve ter pelo menos 8 caracteres' });
+
+  const dados = await validarTokenAcesso(token);
+  if (!dados) return res.status(400).json({ error: 'Link invalido ou expirado' });
+
+  await definirSenha(dados.cliente_id, hashSenha(senha));
+
+  // Criar sessão automaticamente após definir senha
+  const sessionToken = await criarSessao(dados.cliente_id);
+  res.setHeader('Set-Cookie', `wiikfx_session=${sessionToken}; Path=/; HttpOnly; Max-Age=2592000; SameSite=Lax`);
+  res.json({ ok: true });
+});
+
+// ── Auth: Alterar senha (autenticado) ─────────────────
+app.post('/api/portal/alterar-senha', async (req, res) => {
+  const sessionToken = parseCookie(req.headers.cookie)['wiikfx_session'];
+  const sessao = await validarSessao(sessionToken);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+
+  const { senha_atual, senha_nova } = req.body;
+  if (!senha_nova || senha_nova.length < 8) return res.status(400).json({ error: 'Nova senha deve ter pelo menos 8 caracteres' });
+
+  const cliente = await getClienteComSenha(sessao.email);
+  if (cliente.senha_hash && hashSenha(senha_atual) !== cliente.senha_hash) {
+    return res.status(401).json({ error: 'Senha atual incorreta' });
+  }
+
+  await definirSenha(sessao.cliente_id, hashSenha(senha_nova));
+  res.json({ ok: true });
+});
+
 // ── Portal: Dados do cliente ──────────────────────────
 app.get('/api/portal/dados', async (req, res) => {
   const sessionToken = parseCookie(req.headers.cookie)['wiikfx_session'];
@@ -84,7 +168,11 @@ app.get('/api/portal/dados', async (req, res) => {
 
   const vms = await getVMsByEmail(sessao.email);
   const pagamentos = await getPagamentosByClienteId(sessao.cliente_id);
-  res.json({ cliente: { nome: sessao.nome, email: sessao.email }, vms, pagamentos });
+  const clienteCompleto = await getClienteComSenha(sessao.email);
+  res.json({
+    cliente: { nome: sessao.nome, email: sessao.email, tem_senha: !!clienteCompleto?.senha_hash },
+    vms, pagamentos
+  });
 });
 
 // ── Portal: Reiniciar VM ──────────────────────────────
@@ -118,6 +206,7 @@ function parseCookie(cookieStr = '') {
 
 // ── Páginas do portal ─────────────────────────────────
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/definir-senha', (req, res) => res.sendFile(path.join(__dirname, 'public', 'definir-senha.html')));
 app.get('/portal', async (req, res) => {
   const sessionToken = parseCookie(req.headers.cookie)['wiikfx_session'];
   const sessao = await validarSessao(sessionToken);
