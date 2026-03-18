@@ -94,11 +94,12 @@ nav{position:sticky;top:0;z-index:100;padding:0 24px;backdrop-filter:blur(16px);
 
 /* ── Plans ── */
 .plans-section{padding:20px 0 80px;}
-.plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:800px;margin:0 auto;}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1060px;margin:0 auto;}
 
 .plan-card{position:relative;background:var(--card-bg);border:1px solid var(--border);border-radius:24px;padding:2.5rem 2rem;backdrop-filter:blur(12px);transition:all .35s cubic-bezier(.175,.885,.32,1.275);animation:fadeUp .7s ease both;}
 .plan-card:nth-child(1){animation-delay:.1s;}
 .plan-card:nth-child(2){animation-delay:.2s;}
+.plan-card:nth-child(3){animation-delay:.3s;}
 .plan-card:hover{transform:translateY(-8px);border-color:var(--border-hover);box-shadow:0 24px 60px rgba(0,0,0,.4),0 0 40px rgba(92,191,138,.08);}
 .plan-card.featured{border-color:rgba(92,191,138,.4);box-shadow:0 0 0 1px rgba(92,191,138,.2),0 24px 60px rgba(0,0,0,.4);}
 .plan-card.featured:hover{box-shadow:0 0 0 1px rgba(92,191,138,.5),0 28px 70px rgba(0,0,0,.45),0 0 60px rgba(92,191,138,.12);}
@@ -146,10 +147,10 @@ nav{position:sticky;top:0;z-index:100;padding:0 24px;backdrop-filter:blur(16px);
 .section-title{text-align:center;font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;margin-bottom:3rem;color:var(--branco);}
 
 .specs-table{max-width:720px;margin:0 auto;border:1px solid var(--border);border-radius:20px;overflow:hidden;backdrop-filter:blur(12px);}
-.specs-header{display:grid;grid-template-columns:1.5fr 1fr 1fr;background:rgba(27,77,62,.2);border-bottom:1px solid var(--border);}
+.specs-header{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;background:rgba(27,77,62,.2);border-bottom:1px solid var(--border);}
 .specs-header div{padding:1rem 1.25rem;font-size:.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cinza-texto);}
 .specs-header div:not(:first-child){text-align:center;color:var(--verde-claro);}
-.specs-row{display:grid;grid-template-columns:1.5fr 1fr 1fr;border-bottom:1px solid rgba(92,191,138,.06);}
+.specs-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;border-bottom:1px solid rgba(92,191,138,.06);}
 .specs-row:last-child{border-bottom:none;}
 .specs-row:hover{background:rgba(92,191,138,.03);}
 .specs-row div{padding:.9rem 1.25rem;font-size:.9rem;}
@@ -222,8 +223,8 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
 @keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
 
 /* ── Responsive ── */
-@media(max-width:640px){
-  .plans-grid{grid-template-columns:1fr;}
+@media(max-width:900px){
+  .plans-grid{grid-template-columns:1fr!important;}
   .form-row{grid-template-columns:1fr;}
   .specs-header,.specs-row{grid-template-columns:1.2fr .9fr .9fr;}
   .hero h1{font-size:2rem;}
@@ -281,25 +282,25 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
   <section class="plans-section">
     <div class="plans-grid">
 
-      <!-- Basic -->
+      <!-- VPS-1 -->
       <div class="plan-card">
         <div class="plan-icon basic">🖥️</div>
         <div class="plan-name">Plano</div>
-        <div class="plan-title">Basic</div>
+        <div class="plan-title">VPS-1</div>
         <div class="period-selector">
-          <button class="period-btn active" onclick="setPeriod('basic','mensal',this)">Mensal</button>
-          <button class="period-btn" onclick="setPeriod('basic','trimestral',this)">Trim. <span class="period-badge">-10%</span></button>
-          <button class="period-btn" onclick="setPeriod('basic','anual',this)">Anual <span class="period-badge">-15%</span></button>
+          <button class="period-btn active" onclick="setPeriod('vps1','mensal',this)">Mensal</button>
+          <button class="period-btn" onclick="setPeriod('vps1','trimestral',this)">Trim. <span class="period-badge">-10%</span></button>
+          <button class="period-btn" onclick="setPeriod('vps1','anual',this)">Anual <span class="period-badge">-15%</span></button>
         </div>
         <div class="plan-price">
-          <div class="price-from" id="basic-label">Por mês</div>
+          <div class="price-from" id="vps1-label">Por mês</div>
           <div class="price-amount">
             <span class="price-currency">R$</span>
-            <span class="price-number" id="basic-price">129</span>
-            <span class="price-period" id="basic-suffix">/mês</span>
+            <span class="price-number" id="vps1-price">87</span>
+            <span class="price-period" id="vps1-suffix">/mês</span>
           </div>
-          <div class="price-sub-row" id="basic-total" style="display:none">
-            <span class="price-discount-badge" id="basic-total-label">Total: R$ 348,00</span>
+          <div class="price-sub-row" id="vps1-total" style="display:none">
+            <span class="price-discount-badge" id="vps1-total-label"></span>
           </div>
         </div>
         <ul class="plan-features">
@@ -307,48 +308,84 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>2 vCPUs</li>
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>40 GB SSD NVMe</li>
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Windows 10 LTSC</li>
-          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>MT5 pré-instalado</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>MT4 / MT5 instalado</li>
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>IP público dedicado</li>
-          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Acesso via RDP</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>1 terminal recomendado</li>
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Suporte por e-mail</li>
         </ul>
         <div class="plan-divider"></div>
-        <button class="btn-plan btn-basic" onclick="openModal('basic')">Contratar Basic</button>
+        <button class="btn-plan btn-basic" onclick="openModal('vps1')">Contratar VPS-1</button>
       </div>
 
-      <!-- Pro -->
+      <!-- VPS-2 -->
       <div class="plan-card featured">
         <div class="popular-badge">Mais popular</div>
         <div class="plan-icon pro">🚀</div>
         <div class="plan-name">Plano</div>
-        <div class="plan-title">Pro</div>
+        <div class="plan-title">VPS-2</div>
         <div class="period-selector">
-          <button class="period-btn active" onclick="setPeriod('pro','mensal',this)">Mensal</button>
-          <button class="period-btn" onclick="setPeriod('pro','trimestral',this)">Trim. <span class="period-badge">-10%</span></button>
-          <button class="period-btn" onclick="setPeriod('pro','anual',this)">Anual <span class="period-badge">-15%</span></button>
+          <button class="period-btn active" onclick="setPeriod('vps2','mensal',this)">Mensal</button>
+          <button class="period-btn" onclick="setPeriod('vps2','trimestral',this)">Trim. <span class="period-badge">-10%</span></button>
+          <button class="period-btn" onclick="setPeriod('vps2','anual',this)">Anual <span class="period-badge">-15%</span></button>
         </div>
         <div class="plan-price">
-          <div class="price-from" id="pro-label">Por mês</div>
+          <div class="price-from" id="vps2-label">Por mês</div>
           <div class="price-amount">
             <span class="price-currency">R$</span>
-            <span class="price-number" id="pro-price">189</span>
-            <span class="price-period" id="pro-suffix">/mês</span>
+            <span class="price-number" id="vps2-price">127</span>
+            <span class="price-period" id="vps2-suffix">/mês</span>
           </div>
-          <div class="price-sub-row" id="pro-total" style="display:none">
-            <span class="price-discount-badge" id="pro-total-label">Total: R$ 510,00</span>
+          <div class="price-sub-row" id="vps2-total" style="display:none">
+            <span class="price-discount-badge" id="vps2-total-label"></span>
           </div>
         </div>
         <ul class="plan-features">
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>6 GB RAM dedicada</li>
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>4 vCPUs</li>
-          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>40 GB SSD NVMe</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>50 GB SSD NVMe</li>
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Windows 10 LTSC</li>
-          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>MT5 pré-instalado</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>MT4 / MT5 instalado</li>
           <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>IP público dedicado</li>
-          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Suporte prioritário via WhatsApp</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>2 terminais recomendados</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Suporte prioritário WhatsApp</li>
         </ul>
         <div class="plan-divider"></div>
-        <button class="btn-plan btn-pro" onclick="openModal('pro')">Contratar Pro</button>
+        <button class="btn-plan btn-pro" onclick="openModal('vps2')">Contratar VPS-2</button>
+      </div>
+
+      <!-- VPS-3 -->
+      <div class="plan-card">
+        <div class="plan-icon" style="background:linear-gradient(135deg,rgba(27,77,62,.7),rgba(92,191,138,.3));border:1px solid rgba(92,191,138,.4);">⚡</div>
+        <div class="plan-name">Plano</div>
+        <div class="plan-title">VPS-3</div>
+        <div class="period-selector">
+          <button class="period-btn active" onclick="setPeriod('vps3','mensal',this)">Mensal</button>
+          <button class="period-btn" onclick="setPeriod('vps3','trimestral',this)">Trim. <span class="period-badge">-10%</span></button>
+          <button class="period-btn" onclick="setPeriod('vps3','anual',this)">Anual <span class="period-badge">-15%</span></button>
+        </div>
+        <div class="plan-price">
+          <div class="price-from" id="vps3-label">Por mês</div>
+          <div class="price-amount">
+            <span class="price-currency">R$</span>
+            <span class="price-number" id="vps3-price">197</span>
+            <span class="price-period" id="vps3-suffix">/mês</span>
+          </div>
+          <div class="price-sub-row" id="vps3-total" style="display:none">
+            <span class="price-discount-badge" id="vps3-total-label"></span>
+          </div>
+        </div>
+        <ul class="plan-features">
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>8 GB RAM dedicada</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>6 vCPUs</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>60 GB SSD NVMe</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Windows 10 LTSC</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>MT4 / MT5 instalado</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>IP público dedicado</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>3+ terminais + EAs pesados</li>
+          <li><span class="feat-check"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></span>Suporte prioritário WhatsApp</li>
+        </ul>
+        <div class="plan-divider"></div>
+        <button class="btn-plan btn-pro" onclick="openModal('vps3')">Contratar VPS-3</button>
       </div>
 
     </div>
@@ -360,22 +397,22 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
   <section class="specs-section">
     <p class="section-label">Comparativo</p>
     <h2 class="section-title">Detalhes técnicos</h2>
-    <div class="specs-table">
-      <div class="specs-header">
-        <div>Recurso</div><div>Basic</div><div>Pro</div>
+    <div class="specs-table" style="max-width:900px;">
+      <div class="specs-header" style="grid-template-columns:1.5fr 1fr 1fr 1fr;">
+        <div>Recurso</div><div>VPS-1</div><div>VPS-2</div><div>VPS-3</div>
       </div>
-      <div class="specs-row"><div>RAM</div><div>4 GB</div><div class="highlight">6 GB</div></div>
-      <div class="specs-row"><div>vCPUs</div><div>2 cores</div><div class="highlight">4 cores</div></div>
-      <div class="specs-row"><div>Armazenamento</div><div>40 GB SSD</div><div>40 GB SSD</div></div>
-      <div class="specs-row"><div>Sistema operacional</div><div>Win 10 LTSC</div><div>Win 10 LTSC</div></div>
-      <div class="specs-row"><div>MT5 pré-instalado</div><div>✓</div><div class="highlight">✓</div></div>
-      <div class="specs-row"><div>Terminais simultâneos</div><div>1–2</div><div class="highlight">2–3</div></div>
-      <div class="specs-row"><div>EAs / Robôs</div><div>Suportado</div><div class="highlight">Suportado</div></div>
-      <div class="specs-row"><div>IP dedicado</div><div class="highlight">Dedicado</div><div class="highlight">Dedicado</div></div>
-      <div class="specs-row"><div>Acesso RDP</div><div>✓</div><div class="highlight">✓</div></div>
-      <div class="specs-row"><div>Uptime garantido</div><div>99.5%</div><div class="highlight">99.9%</div></div>
-      <div class="specs-row"><div>Suporte</div><div>E-mail</div><div class="highlight">WhatsApp</div></div>
-      <div class="specs-row"><div>Mensal / Trim. / Anual</div><div>R$129 / R$348 / R$1.316</div><div class="highlight">R$189 / R$510 / R$1.928</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>RAM</div><div>4 GB</div><div class="highlight">6 GB</div><div class="highlight">8 GB</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>vCPUs</div><div>2 cores</div><div class="highlight">4 cores</div><div class="highlight">6 cores</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>Armazenamento</div><div>40 GB</div><div class="highlight">50 GB</div><div class="highlight">60 GB</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>Sistema operacional</div><div>Win 10 LTSC</div><div>Win 10 LTSC</div><div>Win 10 LTSC</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>MT4 / MT5</div><div>✓</div><div class="highlight">✓</div><div class="highlight">✓</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>Terminais recomendados</div><div>1</div><div class="highlight">2</div><div class="highlight">3+</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>EAs / Robôs</div><div>✓</div><div class="highlight">✓</div><div class="highlight">✓</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>IP dedicado</div><div class="highlight">✓</div><div class="highlight">✓</div><div class="highlight">✓</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>Suporte</div><div>E-mail</div><div class="highlight">WhatsApp</div><div class="highlight">WhatsApp</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>Mensal</div><div>R$ 87</div><div class="highlight">R$ 127</div><div class="highlight">R$ 197</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>Trimestral (-10%)</div><div>R$ 234,90</div><div class="highlight">R$ 342,90</div><div class="highlight">R$ 531,90</div></div>
+      <div class="specs-row" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><div>Anual (-15%)</div><div>R$ 885,60</div><div class="highlight">R$ 1.295,40</div><div class="highlight">R$ 2.009,40</div></div>
     </div>
   </section>
 </div>
@@ -480,13 +517,14 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
 </div>
 
 <script>
-let selectedPlan = 'basic';
-const labels = { basic: 'Basic', pro: 'Pro' };
-const selectedPeriod = { basic: 'mensal', pro: 'mensal' };
+let selectedPlan = 'vps1';
+const labels = { vps1: 'VPS-1', vps2: 'VPS-2', vps3: 'VPS-3' };
+const selectedPeriod = { vps1: 'mensal', vps2: 'mensal', vps3: 'mensal' };
 
 const PRICES = {
-  basic: { mensal: 129, trimestral: 348, anual: 1315.80 },
-  pro:   { mensal: 189, trimestral: 510, anual: 1927.80  },
+  vps1: { mensal: 87,    trimestral: 234.90, anual: 885.60  },
+  vps2: { mensal: 127,   trimestral: 342.90, anual: 1295.40 },
+  vps3: { mensal: 197,   trimestral: 531.90, anual: 2009.40 },
 };
 const PRICE_LABEL = {
   mensal:     { from: 'Por mês',       suffix: '/mês',   total: null },
@@ -523,7 +561,7 @@ function openModal(plan) {
   selectedPlan = plan;
   const period = selectedPeriod[plan];
   const preco = PRICES[plan][period];
-  document.getElementById('modal-plan-name').textContent = 'Plano ' + labels[plan];
+  document.getElementById('modal-plan-name').textContent = labels[plan];
   document.getElementById('modal-price-label').textContent = 'R$ ' + preco.toFixed(2).replace('.', ',');
   document.getElementById('sum-plan').textContent = labels[plan];
   document.getElementById('sum-periodo').textContent = PERIODO_LABEL[period];
