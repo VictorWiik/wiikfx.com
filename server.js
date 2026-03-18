@@ -372,7 +372,7 @@ async function ativarVPS({ plan, period = 'mensal', nome, email, whatsapp, mpPay
 
 // ── Criar VM no Proxmox ───────────────────────────────
 async function criarVMProxmox({ plan, email }) {
-  const SPECS = { basic: { memory: 4096, cores: 2 }, pro: { memory: 6144, cores: 4 } };
+  const SPECS = { vps1: { memory: 4096, cores: 2 }, vps2: { memory: 6144, cores: 4 }, vps3: { memory: 8192, cores: 6 } };
   const spec = SPECS[plan];
   const vmid = 200 + Math.floor(Math.random() * 800);
   const senha = gerarSenha();
