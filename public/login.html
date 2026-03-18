@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiikFX — Acessar portal</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231B4D3E'/%3E%3Ctext y='.9em' font-size='65' font-family='Arial' font-weight='900' x='8'%3E%3Ctspan fill='%234a9e72'%3EW%3C/tspan%3E%3Ctspan fill='%235CBF8A'%3EFX%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--verde-claro:#5CBF8A;--verde-escuro:#1B4D3E;--preto:#050505;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--preto);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 30% 40%,rgba(27,77,62,.45) 0%,transparent 50%),radial-gradient(ellipse at 70% 60%,rgba(92,191,138,.15) 0%,transparent 50%);}
+.grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(92,191,138,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(92,191,138,.03) 1px,transparent 1px);background-size:60px 60px;}
+.card{position:relative;z-index:10;background:rgba(13,13,13,.9);border:1px solid rgba(92,191,138,.2);border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:420px;animation:fadeUp .6s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.logo{font-size:1.6rem;font-weight:900;letter-spacing:-1px;text-align:center;margin-bottom:2rem;display:block;text-decoration:none;}
+.logo .wiik{color:var(--verde-escuro);}.logo .fx{color:var(--verde-claro);}
+h1{font-size:1.3rem;font-weight:800;margin-bottom:.4rem;}
+.sub{color:#888;font-size:.88rem;margin-bottom:1.5rem;line-height:1.6;}
+.tabs{display:flex;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin-bottom:1.5rem;}
+.tab{flex:1;padding:.55rem;border:none;border-radius:9px;font-size:.82rem;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .2s ease;background:transparent;color:#555;}
+.tab.active{background:rgba(92,191,138,.15);color:var(--verde-claro);border:1px solid rgba(92,191,138,.25);}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:#ccc;margin-bottom:.5rem;}
+.form-input{width:100%;padding:.85rem 1rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#fff;font-size:.95rem;font-family:'Outfit',sans-serif;transition:all .25s ease;margin-bottom:1rem;}
+.form-input:focus{outline:none;border-color:rgba(92,191,138,.5);background:rgba(92,191,138,.04);}
+.form-input::placeholder{color:#444;}
+.btn{width:100%;padding:1rem;background:var(--verde-claro);color:var(--preto);border:none;border-radius:12px;font-size:.95rem;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .3s ease;}
+.btn:hover{background:#4CAF7A;transform:translateY(-2px);box-shadow:0 12px 30px rgba(92,191,138,.3);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-link{background:none;border:none;color:var(--verde-claro);font-size:.82rem;font-family:'Outfit',sans-serif;cursor:pointer;padding:0;text-decoration:underline;}
+.forgot-row{text-align:right;margin-top:-.5rem;margin-bottom:1rem;}
+.error-box{display:none;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:10px;padding:.9rem;font-size:.85rem;color:#e74c3c;margin-bottom:1rem;line-height:1.5;}
+.success-box{display:none;background:rgba(27,77,62,.2);border:1px solid rgba(92,191,138,.3);border-radius:12px;padding:1.2rem;text-align:center;margin-top:1rem;}
+.success-icon{font-size:2rem;margin-bottom:.5rem;}
+.success-box p{font-size:.88rem;color:#aaa;line-height:1.6;}
+.success-box strong{color:var(--verde-claro);}
+.divider{height:1px;background:rgba(255,255,255,.06);margin:1.5rem 0;}
+.back-link{display:block;text-align:center;color:#555;font-size:.85rem;text-decoration:none;}
+.back-link:hover{color:var(--verde-claro);}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="card">
+  <a href="/" class="logo"><span class="wiik">Wiik</span><span class="fx">FX</span></a>
+  <h1>Acessar meu portal</h1>
+  <p class="sub">Entre com link mágico ou com sua senha.</p>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-btn-magic" onclick="setTab('magic')">Link mágico</button>
+    <button class="tab" id="tab-btn-senha" onclick="setTab('senha')">Senha</button>
+  </div>
+
+  <div class="error-box" id="error-box"></div>
+
+  <div id="tab-magic">
+    <div id="form-magic">
+      <label class="form-label">E-mail</label>
+      <input class="form-input" id="email-magic" type="email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter') enviarMagic()">
+      <button class="btn" id="btn-magic" onclick="enviarMagic()">Enviar link de acesso</button>
+    </div>
+    <div class="success-box" id="success-magic">
+      <div class="success-icon">📬</div>
+      <p>Link enviado para <strong id="email-enviado"></strong><br>Verifique sua caixa de entrada. Expira em <strong>15 minutos</strong>.</p>
+    </div>
+  </div>
+
+  <div id="tab-senha" style="display:none">
+    <label class="form-label">E-mail</label>
+    <input class="form-input" id="email-senha" type="email" placeholder="seu@email.com">
+    <label class="form-label">Senha</label>
+    <input class="form-input" id="senha-input" type="password" placeholder="Sua senha" onkeydown="if(event.key==='Enter') enviarSenha()">
+    <div class="forgot-row">
+      <button class="btn-link" onclick="esqueceuSenha()">Esqueci minha senha</button>
+    </div>
+    <button class="btn" id="btn-senha" onclick="enviarSenha()">Entrar</button>
+    <div class="success-box" id="success-reset">
+      <div class="success-icon">📬</div>
+      <p>Link para redefinir senha enviado para <strong id="email-reset"></strong></p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <a href="/vps" class="back-link">Contratar uma VPS</a>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+if (params.get('erro') === 'link_invalido') showError('Link inválido ou expirado. Solicite um novo.');
+
+function setTab(tab) {
+  document.getElementById('tab-btn-magic').classList.toggle('active', tab === 'magic');
+  document.getElementById('tab-btn-senha').classList.toggle('active', tab === 'senha');
+  document.getElementById('tab-magic').style.display = tab === 'magic' ? 'block' : 'none';
+  document.getElementById('tab-senha').style.display = tab === 'senha' ? 'block' : 'none';
+  hideError();
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.innerHTML = msg;
+  el.style.display = 'block';
+}
+function hideError() { document.getElementById('error-box').style.display = 'none'; }
+
+async function enviarMagic() {
+  const email = document.getElementById('email-magic').value.trim();
+  if (!email) return;
+  const btn = document.getElementById('btn-magic');
+  hideError(); btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao enviar');
+    document.getElementById('form-magic').style.display = 'none';
+    document.getElementById('email-enviado').textContent = email;
+    document.getElementById('success-magic').style.display = 'block';
+  } catch(err) {
+    showError(err.message);
+    btn.disabled = false; btn.textContent = 'Enviar link de acesso';
+  }
+}
+
+async function enviarSenha() {
+  const email = document.getElementById('email-senha').value.trim();
+  const senha = document.getElementById('senha-input').value;
+  if (!email || !senha) return;
+  const btn = document.getElementById('btn-senha');
+  hideError(); btn.disabled = true; btn.textContent = 'Entrando...';
+  try {
+    const res = await fetch('/api/auth/login-senha', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, senha }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (data.error === 'sem_senha') {
+        showError('Você ainda não tem senha cadastrada. Use a aba "Link mágico" para entrar e defina uma senha no portal.');
+      } else {
+        throw new Error(data.error || 'Erro ao entrar');
+      }
+      btn.disabled = false; btn.textContent = 'Entrar';
+      return;
+    }
+    window.location.href = '/portal';
+  } catch(err) {
+    showError(err.message);
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+async function esqueceuSenha() {
+  const email = document.getElementById('email-senha').value.trim();
+  if (!email) { showError('Digite seu e-mail primeiro.'); return; }
+  hideError();
+  try {
+    const res = await fetch('/api/auth/solicitar-senha', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro');
+    document.getElementById('email-reset').textContent = email;
+    document.getElementById('success-reset').style.display = 'block';
+  } catch(err) { showError(err.message); }
+}
+</script>
+</body>
+</html>

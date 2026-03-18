@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiikFX — Definir senha</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231B4D3E'/%3E%3Ctext y='.9em' font-size='65' font-family='Arial' font-weight='900' x='8'%3E%3Ctspan fill='%234a9e72'%3EW%3C/tspan%3E%3Ctspan fill='%235CBF8A'%3EFX%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--verde-claro:#5CBF8A;--verde-escuro:#1B4D3E;--preto:#050505;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--preto);color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 30% 40%,rgba(27,77,62,.45) 0%,transparent 50%);}
+.grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(92,191,138,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(92,191,138,.03) 1px,transparent 1px);background-size:60px 60px;}
+.card{position:relative;z-index:10;background:rgba(13,13,13,.9);border:1px solid rgba(92,191,138,.2);border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:420px;animation:fadeUp .6s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.logo{font-size:1.6rem;font-weight:900;letter-spacing:-1px;text-align:center;margin-bottom:2rem;display:block;text-decoration:none;}
+.logo .wiik{color:var(--verde-escuro);}.logo .fx{color:var(--verde-claro);}
+h1{font-size:1.3rem;font-weight:800;margin-bottom:.4rem;}
+.sub{color:#888;font-size:.88rem;margin-bottom:1.5rem;line-height:1.6;}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:#ccc;margin-bottom:.5rem;}
+.input-wrap{position:relative;margin-bottom:1rem;}
+.form-input{width:100%;padding:.85rem 2.8rem .85rem 1rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#fff;font-size:.95rem;font-family:'Outfit',sans-serif;transition:all .25s ease;}
+.form-input:focus{outline:none;border-color:rgba(92,191,138,.5);background:rgba(92,191,138,.04);}
+.form-input::placeholder{color:#444;}
+.toggle-pw{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;padding:0;display:flex;align-items:center;}
+.toggle-pw:hover{color:var(--verde-claro);}
+.toggle-pw svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.strength{height:4px;border-radius:2px;margin-top:-.75rem;margin-bottom:1rem;background:rgba(255,255,255,.06);overflow:hidden;}
+.strength-bar{height:100%;border-radius:2px;transition:width .3s ease,background .3s ease;width:0;}
+.strength-label{font-size:.75rem;color:#555;margin-top:.25rem;margin-bottom:1rem;}
+.btn{width:100%;padding:1rem;background:var(--verde-claro);color:var(--preto);border:none;border-radius:12px;font-size:.95rem;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .3s ease;}
+.btn:hover{background:#4CAF7A;transform:translateY(-2px);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.error-box{display:none;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:10px;padding:.9rem;font-size:.85rem;color:#e74c3c;margin-bottom:1rem;}
+.success-box{display:none;text-align:center;padding:1.5rem 0;}
+.success-box .icon{font-size:2.5rem;margin-bottom:.8rem;}
+.success-box h2{font-size:1.2rem;font-weight:800;margin-bottom:.5rem;}
+.success-box p{color:#888;font-size:.88rem;margin-bottom:1.5rem;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="card">
+  <a href="/" class="logo"><span class="wiik">Wiik</span><span class="fx">FX</span></a>
+
+  <div id="form-area">
+    <h1>Definir senha</h1>
+    <p class="sub">Escolha uma senha segura para acessar seu portal de qualquer dispositivo.</p>
+
+    <div class="error-box" id="error-box"></div>
+
+    <label class="form-label">Nova senha</label>
+    <div class="input-wrap">
+      <input class="form-input" id="nova-senha" type="password" placeholder="Mínimo 8 caracteres" oninput="checkStrength(this.value)">
+      <button class="toggle-pw" onclick="togglePw('nova-senha',this)" type="button">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+    <div class="strength"><div class="strength-bar" id="strength-bar"></div></div>
+    <div class="strength-label" id="strength-label"></div>
+
+    <label class="form-label">Confirmar senha</label>
+    <div class="input-wrap">
+      <input class="form-input" id="confirmar-senha" type="password" placeholder="Repita a senha" onkeydown="if(event.key==='Enter') salvar()">
+      <button class="toggle-pw" onclick="togglePw('confirmar-senha',this)" type="button">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+
+    <button class="btn" id="btn-salvar" onclick="salvar()">Salvar senha e entrar</button>
+  </div>
+
+  <div class="success-box" id="success-box">
+    <div class="icon">🔐</div>
+    <h2>Senha definida!</h2>
+    <p>Sua senha foi salva. Você já está logado e será redirecionado.</p>
+    <button class="btn" onclick="window.location.href='/portal'">Ir para o portal</button>
+  </div>
+</div>
+
+<script>
+const token = new URLSearchParams(window.location.search).get('token');
+if (!token) window.location.href = '/login';
+
+function togglePw(id, btn) {
+  const input = document.getElementById(id);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function checkStrength(senha) {
+  const bar = document.getElementById('strength-bar');
+  const label = document.getElementById('strength-label');
+  let score = 0;
+  if (senha.length >= 8) score++;
+  if (senha.length >= 12) score++;
+  if (/[A-Z]/.test(senha)) score++;
+  if (/[0-9]/.test(senha)) score++;
+  if (/[^A-Za-z0-9]/.test(senha)) score++;
+  const levels = [
+    { w: '20%', bg: '#e74c3c', txt: 'Muito fraca' },
+    { w: '40%', bg: '#e74c3c', txt: 'Fraca' },
+    { w: '60%', bg: '#F5A623', txt: 'Razoável' },
+    { w: '80%', bg: '#5CBF8A', txt: 'Boa' },
+    { w: '100%', bg: '#5CBF8A', txt: 'Forte' },
+  ];
+  const lvl = levels[Math.min(score, 4)];
+  bar.style.width = senha ? lvl.w : '0';
+  bar.style.background = lvl.bg;
+  label.textContent = senha ? lvl.txt : '';
+  label.style.color = lvl.bg;
+}
+
+async function salvar() {
+  const senha = document.getElementById('nova-senha').value;
+  const confirmar = document.getElementById('confirmar-senha').value;
+  const errBox = document.getElementById('error-box');
+  errBox.style.display = 'none';
+
+  if (senha.length < 8) { errBox.textContent = 'A senha deve ter pelo menos 8 caracteres.'; errBox.style.display = 'block'; return; }
+  if (senha !== confirmar) { errBox.textContent = 'As senhas não coincidem.'; errBox.style.display = 'block'; return; }
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  try {
+    const res = await fetch('/api/auth/definir-senha', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, senha }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao salvar');
+    document.getElementById('form-area').style.display = 'none';
+    document.getElementById('success-box').style.display = 'block';
+    setTimeout(() => window.location.href = '/portal', 2000);
+  } catch(err) {
+    errBox.textContent = err.message;
+    errBox.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Salvar senha e entrar';
+  }
+}
+</script>
+</body>
+</html>
