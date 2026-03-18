@@ -141,6 +141,53 @@ nav{position:sticky;top:0;z-index:100;padding:0 24px;backdrop-filter:blur(16px);
 .btn-pro{background:var(--verde-claro);color:var(--preto);}
 .btn-pro:hover{background:var(--verde-hover);transform:translateY(-2px);box-shadow:0 12px 30px rgba(92,191,138,.35);}
 
+/* ── Latency Section ── */
+.latency-section{padding:0 0 80px;}
+.section-sub{text-align:center;color:var(--cinza-texto);font-size:.95rem;max-width:580px;margin:-1.5rem auto 3rem;line-height:1.7;}
+.latency-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:24px;align-items:start;}
+.latency-map{display:flex;flex-direction:column;gap:16px;}
+
+.map-card{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:1.5rem;backdrop-filter:blur(12px);}
+.map-visual{display:flex;align-items:center;gap:0;margin-bottom:1.5rem;}
+.map-server,.map-dc{display:flex;flex-direction:column;align-items:center;gap:.5rem;font-size:.78rem;color:var(--cinza-texto);text-align:center;flex-shrink:0;}
+.map-server small,.map-dc small{font-size:.7rem;color:#555;}
+.server-dot{width:14px;height:14px;border-radius:50%;background:var(--verde-claro);box-shadow:0 0 12px rgba(92,191,138,.6);animation:pulseDot 2s ease-in-out infinite;}
+.dc-dot{width:14px;height:14px;border-radius:50%;background:#378ADD;box-shadow:0 0 12px rgba(55,138,221,.6);}
+.map-line{flex:1;height:2px;background:linear-gradient(90deg,var(--verde-claro),#378ADD);position:relative;margin:0 12px;margin-bottom:1.2rem;}
+.map-pulse{position:absolute;width:8px;height:8px;background:#fff;border-radius:50%;top:50%;transform:translateY(-50%);animation:movePulse 1.8s linear infinite;box-shadow:0 0 6px rgba(255,255,255,.8);}
+@keyframes movePulse{0%{left:0;}100%{left:calc(100% - 8px);}}
+.latency-badge{display:flex;align-items:center;justify-content:space-between;background:rgba(92,191,138,.08);border:1px solid rgba(92,191,138,.2);border-radius:12px;padding:.75rem 1rem;}
+.lat-value{font-size:1.4rem;font-weight:900;color:var(--verde-claro);}
+.lat-label{font-size:.8rem;color:var(--cinza-texto);}
+
+.comparison-row{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:1.2rem;display:flex;flex-direction:column;gap:.9rem;}
+.comp-item{display:grid;grid-template-columns:90px 1fr 60px;align-items:center;gap:.75rem;}
+.comp-origin{font-size:.8rem;font-weight:600;color:var(--cinza-claro);}
+.comp-bar-wrap{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.comp-bar{height:100%;border-radius:3px;}
+.comp-bar-bad{width:95%;background:#e74c3c;animation:growBar 1s ease both .3s;}
+.comp-bar-good{width:7%;background:var(--verde-claro);animation:growBar 1s ease both .5s;}
+@keyframes growBar{from{width:0;}}
+.comp-ms{font-size:.82rem;font-weight:700;text-align:right;}
+.comp-ms.bad{color:#e74c3c;}
+.comp-ms.good{color:var(--verde-claro);}
+
+.brokers-table{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;overflow:hidden;backdrop-filter:blur(12px);}
+.brokers-header{display:grid;grid-template-columns:1.2fr 1.4fr .8fr;background:rgba(27,77,62,.2);padding:.85rem 1.2rem;font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cinza-texto);}
+.broker-row{display:grid;grid-template-columns:1.2fr 1.4fr .8fr;padding:.85rem 1.2rem;border-top:1px solid rgba(92,191,138,.06);align-items:center;transition:background .2s ease;}
+.broker-row:hover{background:rgba(92,191,138,.04);}
+.broker-name{font-size:.88rem;font-weight:600;color:var(--cinza-claro);}
+.broker-dc{font-size:.8rem;color:var(--cinza-texto);}
+.broker-lat{font-size:.82rem;font-weight:700;text-align:right;}
+.broker-lat.good{color:var(--verde-claro);}
+
+@media(max-width:768px){
+  .latency-grid{grid-template-columns:1fr;}
+  .brokers-header span:nth-child(2),.broker-row span:nth-child(2){display:none;}
+  .brokers-header{grid-template-columns:1.5fr .8fr;}
+  .broker-row{grid-template-columns:1.5fr .8fr;}
+}
+
 /* ── Specs comparison ── */
 .specs-section{padding:0 0 80px;}
 .section-label{text-align:center;font-size:.75rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--verde-claro);margin-bottom:.8rem;}
@@ -388,6 +435,115 @@ footer{border-top:1px solid rgba(255,255,255,.05);padding:2rem 24px;text-align:c
         <button class="btn-plan btn-pro" onclick="openModal('vps3')">Contratar VPS-3</button>
       </div>
 
+    </div>
+  </section>
+</div>
+
+<!-- Seção Latência -->
+<div class="wrapper">
+  <section class="latency-section">
+    <p class="section-label">Vantagem geográfica</p>
+    <h2 class="section-title">Servidor em Frankfurt.<br><em style="font-style:normal;color:var(--verde-claro);">Milissegundos importam.</em></h2>
+    <p class="section-sub">Enquanto VPS no Brasil chegam com 180–250ms de latência para os brokers europeus, nosso servidor opera a menos de 15ms dos principais datacenters do mundo.</p>
+
+    <div class="latency-grid">
+
+      <div class="latency-map">
+        <div class="map-card">
+          <div class="map-visual">
+            <div class="map-server">
+              <div class="server-dot"></div>
+              <span>Frankfurt<br><small>Nosso servidor</small></span>
+            </div>
+            <div class="map-line">
+              <div class="map-pulse"></div>
+            </div>
+            <div class="map-dc">
+              <div class="dc-dot"></div>
+              <span>Equinix LD4<br><small>Londres</small></span>
+            </div>
+          </div>
+          <div class="latency-badge">
+            <span class="lat-value">&lt;15ms</span>
+            <span class="lat-label">Frankfurt → LD4</span>
+          </div>
+        </div>
+
+        <div class="comparison-row">
+          <div class="comp-item comp-bad">
+            <span class="comp-origin">VPS Brasil</span>
+            <div class="comp-bar-wrap">
+              <div class="comp-bar comp-bar-bad"></div>
+            </div>
+            <span class="comp-ms bad">~220ms</span>
+          </div>
+          <div class="comp-item comp-good">
+            <span class="comp-origin">WiikFX VPS</span>
+            <div class="comp-bar-wrap">
+              <div class="comp-bar comp-bar-good"></div>
+            </div>
+            <span class="comp-ms good">&lt;15ms</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="brokers-table">
+        <div class="brokers-header">
+          <span>Broker / Firma</span>
+          <span>Datacenter</span>
+          <span>Latência estimada</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">IC Markets</span>
+          <span class="broker-dc">Equinix LD4, Londres</span>
+          <span class="broker-lat good">&lt;12ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">FTMO</span>
+          <span class="broker-dc">Equinix LD4, Londres</span>
+          <span class="broker-lat good">&lt;12ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">Tickmill</span>
+          <span class="broker-dc">Equinix LD4, Londres</span>
+          <span class="broker-lat good">&lt;12ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">XTB</span>
+          <span class="broker-dc">LD4, Londres</span>
+          <span class="broker-lat good">&lt;12ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">The5ers</span>
+          <span class="broker-dc">Equinix LD4</span>
+          <span class="broker-lat good">&lt;12ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">RoboForex</span>
+          <span class="broker-dc">LD4 / Frankfurt</span>
+          <span class="broker-lat good">&lt;8ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">Hantec Markets</span>
+          <span class="broker-dc">Londres / UK</span>
+          <span class="broker-lat good">&lt;15ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">Xness (Exness)</span>
+          <span class="broker-dc">LD4 / Cyprus</span>
+          <span class="broker-lat good">&lt;20ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">The Trading Pit</span>
+          <span class="broker-dc">Frankfurt</span>
+          <span class="broker-lat good">&lt;5ms</span>
+        </div>
+        <div class="broker-row">
+          <span class="broker-name">FundedNext</span>
+          <span class="broker-dc">Europa (MT5)</span>
+          <span class="broker-lat good">&lt;20ms</span>
+        </div>
+      </div>
     </div>
   </section>
 </div>
