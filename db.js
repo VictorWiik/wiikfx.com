@@ -5,7 +5,6 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
-// Cria as tabelas se não existirem
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS clientes (
@@ -43,11 +42,27 @@ async function initDB() {
       valor NUMERIC(10,2),
       criado_em TIMESTAMP DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS tokens_acesso (
+      id SERIAL PRIMARY KEY,
+      cliente_id INTEGER REFERENCES clientes(id),
+      token VARCHAR(128) UNIQUE NOT NULL,
+      usado BOOLEAN DEFAULT FALSE,
+      expira_em TIMESTAMP NOT NULL,
+      criado_em TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS sessoes (
+      id SERIAL PRIMARY KEY,
+      cliente_id INTEGER REFERENCES clientes(id),
+      session_token VARCHAR(128) UNIQUE NOT NULL,
+      expira_em TIMESTAMP NOT NULL,
+      criado_em TIMESTAMP DEFAULT NOW()
+    );
   `);
   console.log('Banco de dados inicializado');
 }
 
-// Upsert cliente (cria ou atualiza)
 async function upsertCliente({ nome, email, whatsapp }) {
   const res = await pool.query(`
     INSERT INTO clientes (nome, email, whatsapp)
@@ -58,7 +73,59 @@ async function upsertCliente({ nome, email, whatsapp }) {
   return res.rows[0];
 }
 
-// Criar VM no banco
+async function getClienteByEmail(email) {
+  const res = await pool.query('SELECT * FROM clientes WHERE email = $1', [email]);
+  return res.rows[0] || null;
+}
+
+async function criarTokenAcesso(clienteId) {
+  const crypto = require('crypto');
+  const token = crypto.randomBytes(48).toString('hex');
+  const expira = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+  await pool.query(`
+    INSERT INTO tokens_acesso (cliente_id, token, expira_em)
+    VALUES ($1, $2, $3)
+  `, [clienteId, token, expira]);
+  return token;
+}
+
+async function validarTokenAcesso(token) {
+  const res = await pool.query(`
+    SELECT t.*, c.* FROM tokens_acesso t
+    JOIN clientes c ON c.id = t.cliente_id
+    WHERE t.token = $1 AND t.usado = FALSE AND t.expira_em > NOW()
+  `, [token]);
+  if (!res.rows[0]) return null;
+  await pool.query('UPDATE tokens_acesso SET usado = TRUE WHERE token = $1', [token]);
+  return res.rows[0];
+}
+
+async function criarSessao(clienteId) {
+  const crypto = require('crypto');
+  const sessionToken = crypto.randomBytes(48).toString('hex');
+  const expira = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
+  await pool.query(`
+    INSERT INTO sessoes (cliente_id, session_token, expira_em)
+    VALUES ($1, $2, $3)
+  `, [clienteId, sessionToken, expira]);
+  return sessionToken;
+}
+
+async function validarSessao(sessionToken) {
+  if (!sessionToken) return null;
+  const res = await pool.query(`
+    SELECT s.*, c.id as cliente_id, c.nome, c.email, c.whatsapp
+    FROM sessoes s
+    JOIN clientes c ON c.id = s.cliente_id
+    WHERE s.session_token = $1 AND s.expira_em > NOW()
+  `, [sessionToken]);
+  return res.rows[0] || null;
+}
+
+async function encerrarSessao(sessionToken) {
+  await pool.query('DELETE FROM sessoes WHERE session_token = $1', [sessionToken]);
+}
+
 async function criarVMBanco({ clienteId, plano, tipoCobranca, vmid, ip, senha, meses = 1 }) {
   const expira = new Date();
   expira.setMonth(expira.getMonth() + meses);
@@ -70,7 +137,6 @@ async function criarVMBanco({ clienteId, plano, tipoCobranca, vmid, ip, senha, m
   return res.rows[0];
 }
 
-// Registrar pagamento
 async function registrarPagamento({ vmId, clienteId, mpPaymentId, mpPreapprovalId, tipo, status, valor }) {
   const res = await pool.query(`
     INSERT INTO pagamentos (vm_id, cliente_id, mp_payment_id, mp_preapproval_id, tipo, status, valor)
@@ -80,7 +146,6 @@ async function registrarPagamento({ vmId, clienteId, mpPaymentId, mpPreapprovalI
   return res.rows[0];
 }
 
-// Buscar VMs de um cliente pelo email
 async function getVMsByEmail(email) {
   const res = await pool.query(`
     SELECT v.*, c.nome, c.email
@@ -92,27 +157,41 @@ async function getVMsByEmail(email) {
   return res.rows;
 }
 
-// Buscar todos os clientes (admin)
+async function getPagamentosByClienteId(clienteId) {
+  const res = await pool.query(`
+    SELECT p.*, v.plano FROM pagamentos p
+    LEFT JOIN vms v ON v.id = p.vm_id
+    WHERE p.cliente_id = $1
+    ORDER BY p.criado_em DESC
+  `, [clienteId]);
+  return res.rows;
+}
+
 async function getAllClientes() {
   const res = await pool.query(`
     SELECT c.*, COUNT(v.id) as total_vms
     FROM clientes c
     LEFT JOIN vms v ON v.cliente_id = c.id
-    GROUP BY c.id
-    ORDER BY c.criado_em DESC
+    GROUP BY c.id ORDER BY c.criado_em DESC
   `);
   return res.rows;
 }
 
-// Buscar todas as VMs (admin)
 async function getAllVMs() {
   const res = await pool.query(`
     SELECT v.*, c.nome, c.email, c.whatsapp
-    FROM vms v
-    JOIN clientes c ON c.id = v.cliente_id
+    FROM vms v JOIN clientes c ON c.id = v.cliente_id
     ORDER BY v.criado_em DESC
   `);
   return res.rows;
 }
 
-module.exports = { pool, initDB, upsertCliente, criarVMBanco, registrarPagamento, getVMsByEmail, getAllClientes, getAllVMs };
+module.exports = {
+  pool, initDB,
+  upsertCliente, getClienteByEmail,
+  criarTokenAcesso, validarTokenAcesso,
+  criarSessao, validarSessao, encerrarSessao,
+  criarVMBanco, registrarPagamento,
+  getVMsByEmail, getPagamentosByClienteId,
+  getAllClientes, getAllVMs,
+};
