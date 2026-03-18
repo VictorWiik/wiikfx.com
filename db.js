@@ -12,8 +12,11 @@ async function initDB() {
       nome VARCHAR(255) NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL,
       whatsapp VARCHAR(20),
+      senha_hash VARCHAR(255),
       criado_em TIMESTAMP DEFAULT NOW()
     );
+
+    ALTER TABLE clientes ADD COLUMN IF NOT EXISTS senha_hash VARCHAR(255);
 
     CREATE TABLE IF NOT EXISTS vms (
       id SERIAL PRIMARY KEY,
@@ -186,10 +189,31 @@ async function getAllVMs() {
   return res.rows;
 }
 
+async function definirSenha(clienteId, senhaHash) {
+  await pool.query('UPDATE clientes SET senha_hash = $1 WHERE id = $2', [senhaHash, clienteId]);
+}
+
+async function getClienteComSenha(email) {
+  const res = await pool.query('SELECT * FROM clientes WHERE email = $1', [email]);
+  return res.rows[0] || null;
+}
+
+async function criarTokenSenha(clienteId) {
+  const crypto = require('crypto');
+  const token = crypto.randomBytes(48).toString('hex');
+  const expira = new Date(Date.now() + 30 * 60 * 1000); // 30 min
+  await pool.query(`
+    INSERT INTO tokens_acesso (cliente_id, token, expira_em)
+    VALUES ($1, $2, $3)
+  `, [clienteId, token, expira]);
+  return token;
+}
+
 module.exports = {
   pool, initDB,
-  upsertCliente, getClienteByEmail,
+  upsertCliente, getClienteByEmail, getClienteComSenha,
   criarTokenAcesso, validarTokenAcesso,
+  criarTokenSenha, definirSenha,
   criarSessao, validarSessao, encerrarSessao,
   criarVMBanco, registrarPagamento,
   getVMsByEmail, getPagamentosByClienteId,
