@@ -26,6 +26,105 @@ app.get('/vps', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vps.h
 app.get('/sucesso', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sucesso.html')));
 app.get('/pendente', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pendente.html')));
 
+// ── Portal: Login (magic link) ───────────────────────
+app.post('/api/auth/login', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email obrigatorio' });
+
+  const cliente = await getClienteByEmail(email);
+  if (!cliente) return res.status(404).json({ error: 'Email nao encontrado. Voce ja contratou uma VPS?' });
+
+  const token = await criarTokenAcesso(cliente.id);
+  const link = `${BASE_URL}/api/auth/verificar?token=${token}`;
+
+  if (resend) {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'WiikFX <noreply@wiikfx.com>',
+      to: email,
+      subject: 'Seu link de acesso WiikFX',
+      html: `
+        <div style="font-family:Arial,sans-serif;background:#050505;color:#fff;padding:40px;max-width:480px;margin:0 auto;border-radius:16px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <span style="font-size:2rem;font-weight:900;"><span style="color:#1B4D3E">Wiik</span><span style="color:#5CBF8A">FX</span></span>
+          </div>
+          <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Acesse seu portal</h2>
+          <p style="color:#888;margin-bottom:24px;font-size:.9rem;">Clique no botão abaixo para entrar no seu painel. O link expira em 15 minutos.</p>
+          <a href="${link}" style="display:block;text-align:center;background:#5CBF8A;color:#050505;padding:14px;border-radius:12px;font-weight:700;text-decoration:none;font-size:1rem;">Acessar meu portal</a>
+          <p style="color:#444;font-size:.75rem;margin-top:20px;text-align:center;">Se nao solicitou este acesso, ignore este email.</p>
+        </div>
+      `,
+    });
+  }
+
+  res.json({ ok: true });
+});
+
+app.get('/api/auth/verificar', async (req, res) => {
+  const { token } = req.query;
+  const dados = await validarTokenAcesso(token);
+  if (!dados) return res.redirect('/login?erro=link_invalido');
+
+  const sessionToken = await criarSessao(dados.cliente_id);
+  res.setHeader('Set-Cookie', `wiikfx_session=${sessionToken}; Path=/; HttpOnly; Max-Age=2592000; SameSite=Lax`);
+  res.redirect('/portal');
+});
+
+app.post('/api/auth/logout', async (req, res) => {
+  const sessionToken = parseCookie(req.headers.cookie)['wiikfx_session'];
+  if (sessionToken) await encerrarSessao(sessionToken);
+  res.setHeader('Set-Cookie', 'wiikfx_session=; Path=/; Max-Age=0');
+  res.json({ ok: true });
+});
+
+// ── Portal: Dados do cliente ──────────────────────────
+app.get('/api/portal/dados', async (req, res) => {
+  const sessionToken = parseCookie(req.headers.cookie)['wiikfx_session'];
+  const sessao = await validarSessao(sessionToken);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+
+  const vms = await getVMsByEmail(sessao.email);
+  const pagamentos = await getPagamentosByClienteId(sessao.cliente_id);
+  res.json({ cliente: { nome: sessao.nome, email: sessao.email }, vms, pagamentos });
+});
+
+// ── Portal: Reiniciar VM ──────────────────────────────
+app.post('/api/portal/reiniciar/:vmid', async (req, res) => {
+  const sessionToken = parseCookie(req.headers.cookie)['wiikfx_session'];
+  const sessao = await validarSessao(sessionToken);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+
+  const { vmid } = req.params;
+  if (!process.env.PROXMOX_HOST || process.env.PROXMOX_HOST === 'https://ip_do_servidor:8006') {
+    return res.json({ ok: true, msg: 'Proxmox nao configurado — simulado' });
+  }
+
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `PVEAPIToken=${process.env.PROXMOX_USER}!${process.env.PROXMOX_TOKEN_ID}=${process.env.PROXMOX_TOKEN_SECRET}`,
+    };
+    await fetch(`${process.env.PROXMOX_HOST}/api2/json/nodes/pve/qemu/${vmid}/status/reboot`, {
+      method: 'POST', headers,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao reiniciar VM' });
+  }
+});
+
+function parseCookie(cookieStr = '') {
+  return Object.fromEntries(cookieStr.split(';').map(c => c.trim().split('=').map(decodeURIComponent)));
+}
+
+// ── Páginas do portal ─────────────────────────────────
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/portal', async (req, res) => {
+  const sessionToken = parseCookie(req.headers.cookie)['wiikfx_session'];
+  const sessao = await validarSessao(sessionToken);
+  if (!sessao) return res.redirect('/login');
+  res.sendFile(path.join(__dirname, 'public', 'portal.html'));
+});
+
 // ── API: Checkout avulso ──────────────────────────────
 app.post('/api/checkout/avulso', async (req, res) => {
   const { plan, period = 'mensal', nome, email, whatsapp } = req.body;
