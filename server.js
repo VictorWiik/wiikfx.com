@@ -284,7 +284,9 @@ async function proxmoxRequest(endpoint, method = 'GET', body = null) {
     'Content-Type': 'application/json',
     Authorization: `PVEAPIToken=${process.env.PROXMOX_USER}!${process.env.PROXMOX_TOKEN_ID}=${process.env.PROXMOX_TOKEN_SECRET}`,
   };
-  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null, ...(process.env.NODE_ENV !== 'production' ? {} : {}) });
+  const https = require('https');
+  const agent = new https.Agent({ rejectUnauthorized: false });
+  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null, agent });
   return res.json();
 }
 
