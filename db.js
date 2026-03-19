@@ -62,6 +62,28 @@ async function initDB() {
       expira_em TIMESTAMP NOT NULL,
       criado_em TIMESTAMP DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS ip_pool (
+      id SERIAL PRIMARY KEY,
+      ip VARCHAR(20) UNIQUE NOT NULL,
+      gateway VARCHAR(20) NOT NULL,
+      netmask VARCHAR(20) NOT NULL,
+      em_uso BOOLEAN DEFAULT FALSE,
+      vmid INTEGER,
+      criado_em TIMESTAMP DEFAULT NOW()
+    );
+
+    INSERT INTO ip_pool (ip, gateway, netmask) VALUES
+      ('212.47.64.212', '212.47.64.1', '255.255.248.0'),
+      ('212.47.64.213', '212.47.64.1', '255.255.248.0'),
+      ('212.47.64.214', '212.47.64.1', '255.255.248.0'),
+      ('212.47.64.215', '212.47.64.1', '255.255.248.0'),
+      ('212.47.64.216', '212.47.64.1', '255.255.248.0'),
+      ('212.47.64.217', '212.47.64.1', '255.255.248.0'),
+      ('212.47.64.218', '212.47.64.1', '255.255.248.0')
+    ON CONFLICT (ip) DO NOTHING;
+
+    UPDATE ip_pool SET em_uso = TRUE WHERE ip IN ('212.47.64.212', '212.47.64.213');
   `);
   console.log('Banco de dados inicializado');
 }
@@ -81,10 +103,15 @@ async function getClienteByEmail(email) {
   return res.rows[0] || null;
 }
 
+async function getClienteComSenha(email) {
+  const res = await pool.query('SELECT * FROM clientes WHERE email = $1', [email]);
+  return res.rows[0] || null;
+}
+
 async function criarTokenAcesso(clienteId) {
   const crypto = require('crypto');
   const token = crypto.randomBytes(48).toString('hex');
-  const expira = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+  const expira = new Date(Date.now() + 15 * 60 * 1000);
   await pool.query(`
     INSERT INTO tokens_acesso (cliente_id, token, expira_em)
     VALUES ($1, $2, $3)
@@ -103,10 +130,25 @@ async function validarTokenAcesso(token) {
   return res.rows[0];
 }
 
+async function criarTokenSenha(clienteId) {
+  const crypto = require('crypto');
+  const token = crypto.randomBytes(48).toString('hex');
+  const expira = new Date(Date.now() + 30 * 60 * 1000);
+  await pool.query(`
+    INSERT INTO tokens_acesso (cliente_id, token, expira_em)
+    VALUES ($1, $2, $3)
+  `, [clienteId, token, expira]);
+  return token;
+}
+
+async function definirSenha(clienteId, senhaHash) {
+  await pool.query('UPDATE clientes SET senha_hash = $1 WHERE id = $2', [senhaHash, clienteId]);
+}
+
 async function criarSessao(clienteId) {
   const crypto = require('crypto');
   const sessionToken = crypto.randomBytes(48).toString('hex');
-  const expira = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
+  const expira = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   await pool.query(`
     INSERT INTO sessoes (cliente_id, session_token, expira_em)
     VALUES ($1, $2, $3)
@@ -170,6 +212,19 @@ async function getPagamentosByClienteId(clienteId) {
   return res.rows;
 }
 
+async function getIPDisponivel() {
+  const res = await pool.query('SELECT * FROM ip_pool WHERE em_uso = FALSE ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED');
+  return res.rows[0] || null;
+}
+
+async function marcarIPUsado(ipId, vmid) {
+  await pool.query('UPDATE ip_pool SET em_uso = TRUE, vmid = $1 WHERE id = $2', [vmid, ipId]);
+}
+
+async function liberarIP(vmid) {
+  await pool.query('UPDATE ip_pool SET em_uso = FALSE, vmid = NULL WHERE vmid = $1', [vmid]);
+}
+
 async function getAllClientes() {
   const res = await pool.query(`
     SELECT c.*, COUNT(v.id) as total_vms
@@ -189,26 +244,6 @@ async function getAllVMs() {
   return res.rows;
 }
 
-async function definirSenha(clienteId, senhaHash) {
-  await pool.query('UPDATE clientes SET senha_hash = $1 WHERE id = $2', [senhaHash, clienteId]);
-}
-
-async function getClienteComSenha(email) {
-  const res = await pool.query('SELECT * FROM clientes WHERE email = $1', [email]);
-  return res.rows[0] || null;
-}
-
-async function criarTokenSenha(clienteId) {
-  const crypto = require('crypto');
-  const token = crypto.randomBytes(48).toString('hex');
-  const expira = new Date(Date.now() + 30 * 60 * 1000); // 30 min
-  await pool.query(`
-    INSERT INTO tokens_acesso (cliente_id, token, expira_em)
-    VALUES ($1, $2, $3)
-  `, [clienteId, token, expira]);
-  return token;
-}
-
 module.exports = {
   pool, initDB,
   upsertCliente, getClienteByEmail, getClienteComSenha,
@@ -218,4 +253,5 @@ module.exports = {
   criarVMBanco, registrarPagamento,
   getVMsByEmail, getPagamentosByClienteId,
   getAllClientes, getAllVMs,
+  getIPDisponivel, marcarIPUsado, liberarIP,
 };
