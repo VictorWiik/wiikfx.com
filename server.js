@@ -41,7 +41,7 @@ const PROXMOX_SPECS = {
   vps3: { memory: 8192, cores: 6 },
 };
 const PROXMOX_TEMPLATE_ID = 100;
-const PROXMOX_NODE = process.env.PROXMOX_NODE || 'pve';
+const PROXMOX_NODE = process.env.PROXMOX_NODE || 'm5527';
 
 // ── Páginas ───────────────────────────────────────────
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -244,31 +244,46 @@ async function criarVMProxmox({ plan, email }) {
     return { ip: '000.000.000.000', usuario: 'Administrator', senha, porta: 3389, vmid: null };
   }
   const spec = PROXMOX_SPECS[plan];
-  const vmid = 200 + Math.floor(Math.random() * 799);
+
+  // Pegar próximo VMID disponível
+  const vmListRes = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
+  const usedIds = (vmListRes.data || []).map(vm => vm.vmid);
+  let vmid = 200;
+  while (usedIds.includes(vmid)) vmid++;
+
   const ipInfo = await getIPDisponivel();
   if (!ipInfo) throw new Error('Nenhum IP disponivel no pool');
+
   console.log(`Clonando template ${PROXMOX_TEMPLATE_ID} → VM ${vmid}`);
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${PROXMOX_TEMPLATE_ID}/clone`, 'POST', {
     newid: vmid,
     name: `vps-${email.split('@')[0].replace(/[^a-z0-9]/gi, '')}`,
     full: 1,
   });
-  await aguardarTaskProxmox(vmid, 45000);
+
+  // Aguardar clonagem verificando a task
+  await aguardarTaskProxmox(vmid, 120000);
+
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/config`, 'PUT', {
     memory: spec.memory, cores: spec.cores,
   });
+
   console.log(`Configurando IP ${ipInfo.ip} para VM ${vmid}`);
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
-  await aguardarGuestAgent(vmid, 120000);
+  await aguardarGuestAgent(vmid, 180000);
+
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
     'input-data': `Set-Content -Path 'C:\\WiikFX\\vmconfig.txt' -Value @('IP=${ipInfo.ip}', 'GATEWAY=${ipInfo.gateway}', 'NETMASK=${ipInfo.netmask}', 'SENHA=${senha}')`,
   });
+
   await new Promise(r => setTimeout(r, 3000));
+
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
     'input-data': '-ExecutionPolicy Bypass -File C:\\WiikFX\\SetupVM.ps1',
   });
+
   await marcarIPUsado(ipInfo.id, vmid);
   return { ip: ipInfo.ip, usuario: 'Administrator', senha, porta: 3389, vmid };
 }
@@ -297,11 +312,21 @@ async function proxmoxRequest(endpoint, method = 'GET', body = null) {
   }
 }
 
-async function aguardarTaskProxmox(vmid, timeout = 60000) {
-  await new Promise(r => setTimeout(r, timeout));
+async function aguardarTaskProxmox(vmid, timeout = 120000) {
+  const inicio = Date.now();
+  while (Date.now() - inicio < timeout) {
+    const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
+    const vms = res.data || [];
+    if (vms.find(v => v.vmid === vmid)) {
+      console.log(`VM ${vmid} confirmada no Proxmox`);
+      return true;
+    }
+    await new Promise(r => setTimeout(r, 5000));
+  }
+  throw new Error(`VM ${vmid} nao apareceu no Proxmox em ${timeout}ms`);
 }
 
-async function aguardarGuestAgent(vmid, timeout = 120000) {
+async function aguardarGuestAgent(vmid, timeout = 180000) {
   const inicio = Date.now();
   while (Date.now() - inicio < timeout) {
     try {
