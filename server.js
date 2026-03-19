@@ -40,7 +40,7 @@ const PROXMOX_SPECS = {
   vps2: { memory: 6144, cores: 4 },
   vps3: { memory: 8192, cores: 6 },
 };
-const PROXMOX_TEMPLATE_ID = 100;
+const PROXMOX_TEMPLATE_ID = 200;
 const PROXMOX_NODE = process.env.PROXMOX_NODE || 'pve';
 
 // ── Páginas ───────────────────────────────────────────
