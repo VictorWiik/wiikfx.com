@@ -402,4 +402,4 @@ app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 
 // ── Start ─────────────────────────────────────────────
 app.listen(PORT, () => console.log(`WiikFX rodando na porta ${PORT}`));
-initDB().catch(err => console.error('Aviso banco:', err.message));
+initDB().catch(err => console.error('Aviso banco:', err.message)); 
