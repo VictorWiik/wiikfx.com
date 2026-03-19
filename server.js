@@ -287,7 +287,14 @@ async function proxmoxRequest(endpoint, method = 'GET', body = null) {
   const https = require('https');
   const agent = new https.Agent({ rejectUnauthorized: false });
   const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null, agent });
-  return res.json();
+  const text = await res.text();
+  if (!text || text.trim() === '') return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.warn('Proxmox resposta nao-JSON:', text.slice(0, 200));
+    return {};
+  }
 }
 
 async function aguardarTaskProxmox(vmid, timeout = 60000) {
