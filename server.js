@@ -41,7 +41,7 @@ const PROXMOX_SPECS = {
   vps3: { memory: 8192, cores: 6 },
 };
 const PROXMOX_TEMPLATE_ID = 100;
-const PROXMOX_NODE = process.env.PROXMOX_NODE || 'm5527';
+const PROXMOX_NODE = process.env.PROXMOX_NODE || 'pve';
 
 // ── Páginas ───────────────────────────────────────────
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -181,8 +181,8 @@ app.post('/api/checkout/avulso', async (req, res) => {
         items: [{ title: `${plano.name} — ${PERIOD_LABEL[period]}`, quantity: 1, unit_price: preco, currency_id: 'BRL' }],
         payer: { name: nome, email },
         metadata: { plan, period, nome, email, whatsapp },
-        back_urls: { success: `${BASE_URL}/sucesso`, failure: `${BASE_URL}/vps`, pending: `${BASE_URL}/sucesso` },
-        auto_return: 'all',
+        back_urls: { success: `${BASE_URL}/sucesso`, failure: `${BASE_URL}/vps`, pending: `${BASE_URL}/pendente` },
+        auto_return: 'approved',
         notification_url: `${BASE_URL}/api/webhook/mercadopago`,
         payment_methods: { installments: 1 },
       }
@@ -239,10 +239,12 @@ async function ativarVPS({ plan, period = 'mensal', nome, email, whatsapp, mpPay
 // ── Criar VM no Proxmox ───────────────────────────────
 async function criarVMProxmox({ plan, email }) {
   const senha = gerarSenha();
+
   if (!proxmoxConfigurado()) {
     console.log('Proxmox nao configurado — simulando VM');
     return { ip: '000.000.000.000', usuario: 'Administrator', senha, porta: 3389, vmid: null };
   }
+
   const spec = PROXMOX_SPECS[plan];
 
   // Pegar próximo VMID disponível
@@ -254,23 +256,33 @@ async function criarVMProxmox({ plan, email }) {
   const ipInfo = await getIPDisponivel();
   if (!ipInfo) throw new Error('Nenhum IP disponivel no pool');
 
+  // 1. Clonar template
   console.log(`Clonando template ${PROXMOX_TEMPLATE_ID} → VM ${vmid}`);
-  await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${PROXMOX_TEMPLATE_ID}/clone`, 'POST', {
+  const cloneRes = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${PROXMOX_TEMPLATE_ID}/clone`, 'POST', {
     newid: vmid,
     name: `vps-${email.split('@')[0].replace(/[^a-z0-9]/gi, '')}`,
     full: 1,
   });
+  console.log(`Resposta clone: ${JSON.stringify(cloneRes)}`);
+  if (!cloneRes.data) throw new Error(`Clone falhou: ${JSON.stringify(cloneRes)}`);
 
+  // 2. Aguardar clonagem verificando se VM apareceu
   await aguardarTaskProxmox(vmid, 300000);
 
+  // 3. Ajustar recursos
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/config`, 'PUT', {
-    memory: spec.memory, cores: spec.cores,
+    memory: spec.memory,
+    cores: spec.cores,
   });
 
+  // 4. Iniciar VM
   console.log(`Configurando IP ${ipInfo.ip} para VM ${vmid}`);
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
+
+  // 5. Aguardar guest agent
   await aguardarGuestAgent(vmid, 180000);
 
+  // 6. Criar arquivo de configuração na VM
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
     'input-data': `Set-Content -Path 'C:\\WiikFX\\vmconfig.txt' -Value @('IP=${ipInfo.ip}', 'GATEWAY=${ipInfo.gateway}', 'NETMASK=${ipInfo.netmask}', 'SENHA=${senha}')`,
@@ -278,6 +290,7 @@ async function criarVMProxmox({ plan, email }) {
 
   await new Promise(r => setTimeout(r, 3000));
 
+  // 7. Executar script de setup
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
     'input-data': '-ExecutionPolicy Bypass -File C:\\WiikFX\\SetupVM.ps1',
@@ -328,11 +341,15 @@ async function aguardarTaskProxmox(vmid, timeout = 300000) {
 }
 
 async function aguardarGuestAgent(vmid, timeout = 180000) {
+  console.log(`Aguardando guest agent VM ${vmid}...`);
   const inicio = Date.now();
   while (Date.now() - inicio < timeout) {
     try {
       const r = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/ping`, 'POST');
-      if (!r.errors) return true;
+      if (!r.errors) {
+        console.log(`Guest agent VM ${vmid} respondeu!`);
+        return true;
+      }
     } catch {}
     await new Promise(r => setTimeout(r, 5000));
   }
@@ -343,7 +360,7 @@ async function aguardarGuestAgent(vmid, timeout = 180000) {
 async function enviarEmailBoasVindas({ nome, email, plan, vmInfo }) {
   if (!resend) { console.warn('Resend nao configurado'); return; }
   await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'WiikFX <noreipo@wiikfx.com>',
+    from: process.env.EMAIL_FROM || 'WiikFX <noreply@wiikfx.com>',
     to: email,
     subject: 'Sua VPS WiikFX esta pronta!',
     html: emailBase(`
