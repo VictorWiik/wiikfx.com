@@ -397,9 +397,23 @@ function parseCookie(cookieStr = '') {
   } catch { return {}; }
 }
 
+
+app.get('/api/test-proxmox', async (req, res) => {
+  const url = `${process.env.PROXMOX_HOST}/api2/json/nodes`;
+  const token = `PVEAPIToken=${process.env.PROXMOX_USER}!${process.env.PROXMOX_TOKEN_ID}=${process.env.PROXMOX_TOKEN_SECRET}`;
+  res.json({
+    url,
+    token_preview: token.slice(0, 60) + '...',
+    proxmox_host: process.env.PROXMOX_HOST,
+    proxmox_user: process.env.PROXMOX_USER,
+    token_id: process.env.PROXMOX_TOKEN_ID,
+    token_secret_preview: process.env.PROXMOX_TOKEN_SECRET?.slice(0, 8) + '...',
+  });
+});
+
 // ── Fallback ──────────────────────────────────────────
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ── Start ─────────────────────────────────────────────
 app.listen(PORT, () => console.log(`WiikFX rodando na porta ${PORT}`));
-initDB().catch(err => console.error('Aviso banco:', err.message)); 
+initDB().catch(err => console.error('Aviso banco:', err.message));
