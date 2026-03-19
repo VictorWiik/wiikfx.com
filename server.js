@@ -131,7 +131,7 @@ app.post('/api/auth/definir-senha', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/portal/alterar-senha', async (req, res) => {
+app.post('/api/portal/alterar-senha', async (req, res) => no {
   const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
   if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
   const { senha_atual, senha_nova } = req.body;
@@ -261,8 +261,7 @@ async function criarVMProxmox({ plan, email }) {
     full: 1,
   });
 
-  // Aguardar clonagem verificando a task
-  await aguardarTaskProxmox(vmid, 120000);
+  await aguardarTaskProxmox(vmid, 300000);
 
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/config`, 'PUT', {
     memory: spec.memory, cores: spec.cores,
@@ -312,18 +311,20 @@ async function proxmoxRequest(endpoint, method = 'GET', body = null) {
   }
 }
 
-async function aguardarTaskProxmox(vmid, timeout = 120000) {
+async function aguardarTaskProxmox(vmid, timeout = 300000) {
+  console.log(`Aguardando VM ${vmid} aparecer...`);
   const inicio = Date.now();
   while (Date.now() - inicio < timeout) {
+    await new Promise(r => setTimeout(r, 8000));
     const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
     const vms = res.data || [];
     if (vms.find(v => v.vmid === vmid)) {
       console.log(`VM ${vmid} confirmada no Proxmox`);
       return true;
     }
-    await new Promise(r => setTimeout(r, 5000));
+    console.log(`VM ${vmid} ainda nao apareceu, aguardando...`);
   }
-  throw new Error(`VM ${vmid} nao apareceu no Proxmox em ${timeout}ms`);
+  throw new Error(`VM ${vmid} nao apareceu em ${timeout}ms`);
 }
 
 async function aguardarGuestAgent(vmid, timeout = 180000) {
@@ -342,7 +343,7 @@ async function aguardarGuestAgent(vmid, timeout = 180000) {
 async function enviarEmailBoasVindas({ nome, email, plan, vmInfo }) {
   if (!resend) { console.warn('Resend nao configurado'); return; }
   await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'WiikFX <noreply@wiikfx.com>',
+    from: process.env.EMAIL_FROM || 'WiikFX <noreipo@wiikfx.com>',
     to: email,
     subject: 'Sua VPS WiikFX esta pronta!',
     html: emailBase(`
