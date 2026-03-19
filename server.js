@@ -131,7 +131,7 @@ app.post('/api/auth/definir-senha', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/portal/alterar-senha', async (req, res) => no {
+app.post('/api/portal/alterar-senha', async (req, res) => {
   const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
   if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
   const { senha_atual, senha_nova } = req.body;
