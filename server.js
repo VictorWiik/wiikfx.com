@@ -397,7 +397,11 @@ async function enviarEmailBoasVindas({ nome, email, plan, vmInfo }) {
       <div style="background:rgba(27,77,62,0.2);border:1px solid rgba(92,191,138,0.15);border-radius:10px;padding:16px;margin-bottom:24px;">
         <p style="font-size:.85rem;color:#aaa;margin:0;line-height:1.6;"><strong style="color:#5CBF8A">Como conectar:</strong> Abra "Conexao de Area de Trabalho Remota", digite o IP e faca login com as credenciais acima.</p>
       </div>
-      <p style="color:#555;font-size:.8rem;text-align:center;">Suporte: <a href="https://t.me/WiikFX" style="color:#5CBF8A;">t.me/WiikFX</a></p>
+      <div style="background:rgba(27,77,62,0.15);border:1px solid rgba(92,191,138,0.1);border-radius:10px;padding:16px;margin-bottom:24px;text-align:center;">
+        <p style="font-size:.9rem;color:#aaa;margin:0 0 12px;">Acesse sua área de cliente para ver detalhes da sua VPS, reiniciar o servidor e gerenciar sua conta.</p>
+        <a href="${BASE_URL}/portal" style="display:inline-block;background:#5CBF8A;color:#050505;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:.9rem;">Acessar minha área de cliente</a>
+    </div>
+        <p style="color:#555;font-size:.8rem;text-align:center;">Suporte: <a href="https://t.me/WiikFX" style="color:#5CBF8A;">t.me/WiikFX</a></p>
     `),
   });
 }
