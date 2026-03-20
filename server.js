@@ -288,7 +288,7 @@ async function criarVMProxmox({ plan, email }) {
     await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/resize`, 'PUT', {
       disk: 'scsi0', size: `+${spec.disk_extra}G`,
     });
-    await new Promise(r => setTimeout(r, 3000));
+    await aguardarResizeCompleto(vmid, 60000);
   }
 
   // 4. Iniciar VM
@@ -347,25 +347,47 @@ async function proxmoxRequest(endpoint, method = 'GET', body = null) {
   }
 }
 
-async function aguardarTaskProxmox(vmid, timeout = 120000) {
-  console.log(`Aguardando VM ${vmid} aparecer...`);
+async function aguardarTaskProxmox(vmid, timeout = 180000) {
+  console.log(`Aguardando VM ${vmid} ficar pronta (sem lock)...`);
   const inicio = Date.now();
   while (Date.now() - inicio < timeout) {
     await new Promise(r => setTimeout(r, 8000));
     try {
       const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
       const vms = res.data || [];
-      if (vms.find(v => v.vmid === vmid)) {
-        console.log(`VM ${vmid} confirmada no Proxmox`);
-        return true;
+      const vm = vms.find(v => v.vmid === vmid);
+      if (vm) {
+        if (!vm.lock) {
+          console.log(`VM ${vmid} confirmada e sem lock — pronta!`);
+          return true;
+        }
+        console.log(`VM ${vmid} existe mas com lock='${vm.lock}', aguardando...`);
+      } else {
+        console.log(`VM ${vmid} ainda nao apareceu, aguardando...`);
       }
-      console.log(`VM ${vmid} ainda nao apareceu, aguardando...`);
     } catch (err) {
       console.warn(`Erro ao verificar VM ${vmid}: ${err.message} — continuando...`);
     }
   }
-  console.warn(`VM ${vmid} nao confirmada em ${timeout}ms — continuando mesmo assim`);
+  console.warn(`VM ${vmid} nao ficou pronta em ${timeout}ms — continuando mesmo assim`);
   return false;
+}
+
+async function aguardarResizeCompleto(vmid, timeout = 60000) {
+  console.log(`Aguardando resize VM ${vmid}...`);
+  const inicio = Date.now();
+  while (Date.now() - inicio < timeout) {
+    await new Promise(r => setTimeout(r, 5000));
+    try {
+      const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
+      const vm = (res.data || []).find(v => v.vmid === vmid);
+      if (vm && !vm.lock) {
+        console.log(`Resize VM ${vmid} concluido!`);
+        return true;
+      }
+    } catch {}
+  }
+  return true;
 }
 
 async function aguardarGuestAgent(vmid, timeout = 180000) {
