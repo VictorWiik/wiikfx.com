@@ -40,7 +40,7 @@ const PROXMOX_SPECS = {
   vps2: { memory: 6144, cores: 4, disk_extra: 10 },
   vps3: { memory: 8192, cores: 6, disk_extra: 20 },
 };
-const PROXMOX_TEMPLATE_ID = 202;
+const PROXMOX_TEMPLATE_ID = 100;
 const PROXMOX_NODE = process.env.PROXMOX_NODE || 'pve';
 
 // ── Páginas ───────────────────────────────────────────
@@ -266,7 +266,7 @@ async function criarVMProxmox({ plan, email }) {
   console.log(`Resposta clone: ${JSON.stringify(cloneRes)}`);
   if (!cloneRes.data) throw new Error(`Clone falhou: ${JSON.stringify(cloneRes)}`);
 
-  // 2. Aguardar clonagem
+  // 2. Aguardar clonagem (120s max, não falha se timeout)
   await aguardarTaskProxmox(vmid, 120000);
 
   // 3. Ajustar recursos
@@ -281,29 +281,37 @@ async function criarVMProxmox({ plan, email }) {
     await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/resize`, 'PUT', {
       disk: 'scsi0', size: `+${spec.disk_extra}G`,
     });
+    await new Promise(r => setTimeout(r, 3000));
   }
 
   // 4. Iniciar VM
-  console.log(`Configurando IP ${ipInfo.ip} para VM ${vmid}`);
+  console.log(`Iniciando VM ${vmid}...`);
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
 
-  // 5. Aguardar guest agent
+  // 5. Aguardar VM ligar (30s fixo antes de tentar guest agent)
+  console.log(`Aguardando VM ${vmid} ligar...`);
+  await new Promise(r => setTimeout(r, 30000));
+
+  // 6. Aguardar guest agent
   await aguardarGuestAgent(vmid, 180000);
 
-  // 6. Criar arquivo de configuração na VM
+  // 7. Criar arquivo de configuração na VM
+  console.log(`Configurando IP ${ipInfo.ip} para VM ${vmid}`);
+  const vmconfigCmd = `Set-Content -Path 'C:\WiikFX\vmconfig.txt' -Value @('IP=${ipInfo.ip}', 'GATEWAY=${ipInfo.gateway}', 'NETMASK=${ipInfo.netmask}', 'SENHA=${senha}')`;
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
-    'input-data': `Set-Content -Path 'C:\\WiikFX\\vmconfig.txt' -Value @('IP=${ipInfo.ip}', 'GATEWAY=${ipInfo.gateway}', 'NETMASK=${ipInfo.netmask}', 'SENHA=${senha}')`,
+    'input-data': vmconfigCmd,
   });
 
   await new Promise(r => setTimeout(r, 3000));
 
-  // 7. Executar script de setup
+  // 8. Executar script de setup
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
-    'input-data': '-ExecutionPolicy Bypass -File C:\\WiikFX\\SetupVM.ps1',
+    'input-data': '-ExecutionPolicy Bypass -File C:\WiikFX\SetupVM.ps1',
   });
 
+  await new Promise(r => setTimeout(r, 5000));
   await marcarIPUsado(ipInfo.id, vmid);
   return { ip: ipInfo.ip, usuario: 'Administrator', senha, porta: 3389, vmid };
 }
