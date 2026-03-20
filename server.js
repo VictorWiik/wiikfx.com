@@ -453,9 +453,9 @@ async function aguardarGuestAgent(vmid, timeout = 180000) {
         continue;
       }
       const ping = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/ping`, 'POST');
-      // Agente respondeu de verdade: sem message de erro e status 200
-      if (!ping.message && ping.data === null) {
-        console.log(`Guest agent VM ${vmid} respondeu!`);
+      // Agente respondeu de verdade: data existe e tem result, sem message de erro
+      if (!ping.message && ping.data !== undefined) {
+        console.log(`Guest agent VM ${vmid} respondeu! data=${JSON.stringify(ping.data)}`);
         return true;
       }
       console.log(`Guest agent ainda nao pronto: ${JSON.stringify(ping).slice(0,100)}`);
