@@ -301,23 +301,49 @@ async function criarVMProxmox({ plan, email }) {
   // 6. Aguardar guest agent
   await aguardarGuestAgent(vmid, 180000);
 
-  // 7. Criar arquivo de configuração na VM
+  // 7. Aguardar agente estabilizar antes de executar comandos
+  console.log(`Aguardando agente estabilizar VM ${vmid}...`);
+  await new Promise(r => setTimeout(r, 20000));
+
+  // 8. Criar arquivo de configuração na VM (com retry)
   console.log(`Configurando IP ${ipInfo.ip} para VM ${vmid}`);
   const vmconfigCmd = `Set-Content -Path 'C:\\WiikFX\\vmconfig.txt' -Value @('IP=${ipInfo.ip}', 'GATEWAY=${ipInfo.gateway}', 'NETMASK=${ipInfo.netmask}', 'SENHA=${senha}')`;
-  await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
-    command: 'powershell',
-    'input-data': vmconfigCmd,
-  });
-
-  await new Promise(r => setTimeout(r, 3000));
-
-  // 8. Executar script de setup
-  await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
-    command: 'powershell',
-    'input-data': '-ExecutionPolicy Bypass -File C:\\WiikFX\\SetupVM.ps1',
-  });
+  
+  let vmconfigOk = false;
+  for (let i = 0; i < 10; i++) {
+    const r = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
+      command: 'powershell',
+      'input-data': vmconfigCmd,
+    });
+    if (r.data?.pid) {
+      console.log(`vmconfig criado com sucesso (pid ${r.data.pid})`);
+      vmconfigOk = true;
+      break;
+    }
+    console.warn(`vmconfig tentativa ${i+1} falhou: ${JSON.stringify(r).slice(0,100)}`);
+    await new Promise(r => setTimeout(r, 8000));
+  }
+  if (!vmconfigOk) throw new Error('Nao foi possivel criar vmconfig.txt na VM');
 
   await new Promise(r => setTimeout(r, 5000));
+
+  // 9. Executar script de setup (com retry)
+  let setupOk = false;
+  for (let i = 0; i < 10; i++) {
+    const r = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
+      command: 'powershell',
+      'input-data': '-ExecutionPolicy Bypass -File C:\\WiikFX\\SetupVM.ps1',
+    });
+    if (r.data?.pid) {
+      console.log(`SetupVM.ps1 executado (pid ${r.data.pid})`);
+      setupOk = true;
+      break;
+    }
+    console.warn(`SetupVM tentativa ${i+1} falhou: ${JSON.stringify(r).slice(0,100)}`);
+    await new Promise(r => setTimeout(r, 8000));
+  }
+
+  await new Promise(r => setTimeout(r, 10000));
   await marcarIPUsado(ipInfo.id, vmid);
   return { ip: ipInfo.ip, usuario: 'Administrator', senha, porta: 3389, vmid };
 }
@@ -424,14 +450,15 @@ async function aguardarGuestAgent(vmid, timeout = 180000) {
       const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/current`);
       if (res.data?.status !== 'running') {
         console.warn(`VM ${vmid} nao esta rodando, status: ${res.data?.status}`);
-        await new Promise(r => setTimeout(r, 5000));
         continue;
       }
       const ping = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/ping`, 'POST');
-      if (ping.data !== undefined || (!ping.errors && !ping.message)) {
+      // Agente respondeu de verdade: sem message de erro e status 200
+      if (!ping.message && ping.data === null) {
         console.log(`Guest agent VM ${vmid} respondeu!`);
         return true;
       }
+      console.log(`Guest agent ainda nao pronto: ${JSON.stringify(ping).slice(0,100)}`);
     } catch {}
   }
   throw new Error(`Guest agent nao respondeu em ${timeout}ms`);
