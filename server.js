@@ -293,12 +293,10 @@ async function criarVMProxmox({ plan, email }) {
 
   // 4. Iniciar VM
   console.log(`Iniciando VM ${vmid}...`);
-  const startRes = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
-  console.log(`Start response: ${JSON.stringify(startRes)}`);
+  await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
 
-  // 5. Aguardar VM ligar (60s fixo antes de tentar guest agent)
-  console.log(`Aguardando VM ${vmid} ligar...`);
-  await new Promise(r => setTimeout(r, 60000));
+  // 5. Aguardar VM realmente ligar verificando status
+  await aguardarVMLigada(vmid, 120000);
 
   // 6. Aguardar guest agent
   await aguardarGuestAgent(vmid, 180000);
@@ -390,18 +388,49 @@ async function aguardarResizeCompleto(vmid, timeout = 60000) {
   return true;
 }
 
+async function aguardarVMLigada(vmid, timeout = 120000) {
+  console.log(`Verificando se VM ${vmid} ligou...`);
+  const inicio = Date.now();
+  while (Date.now() - inicio < timeout) {
+    await new Promise(r => setTimeout(r, 8000));
+    try {
+      const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/current`);
+      const status = res.data?.status;
+      console.log(`VM ${vmid} status: ${status}`);
+      if (status === 'running') {
+        console.log(`VM ${vmid} esta rodando!`);
+        return true;
+      }
+      // Tentar ligar novamente se ainda estiver stopped
+      if (status === 'stopped') {
+        console.log(`VM ${vmid} ainda stopped, tentando ligar novamente...`);
+        await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
+      }
+    } catch (err) {
+      console.warn(`Erro ao verificar status VM ${vmid}: ${err.message}`);
+    }
+  }
+  throw new Error(`VM ${vmid} nao ligou em ${timeout}ms`);
+}
+
 async function aguardarGuestAgent(vmid, timeout = 180000) {
   console.log(`Aguardando guest agent VM ${vmid}...`);
   const inicio = Date.now();
   while (Date.now() - inicio < timeout) {
+    await new Promise(r => setTimeout(r, 8000));
     try {
-      const r = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/ping`, 'POST');
-      if (!r.errors) {
+      const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/current`);
+      if (res.data?.status !== 'running') {
+        console.warn(`VM ${vmid} nao esta rodando, status: ${res.data?.status}`);
+        await new Promise(r => setTimeout(r, 5000));
+        continue;
+      }
+      const ping = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/ping`, 'POST');
+      if (ping.data !== undefined || (!ping.errors && !ping.message)) {
         console.log(`Guest agent VM ${vmid} respondeu!`);
         return true;
       }
     } catch {}
-    await new Promise(r => setTimeout(r, 5000));
   }
   throw new Error(`Guest agent nao respondeu em ${timeout}ms`);
 }
