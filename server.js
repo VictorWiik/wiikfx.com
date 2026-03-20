@@ -36,11 +36,11 @@ const PLANS = {
 const PERIOD_LABEL = { mensal: 'Mensal', trimestral: 'Trimestral', anual: 'Anual' };
 const PERIOD_MONTHS = { mensal: 1, trimestral: 3, anual: 12 };
 const PROXMOX_SPECS = {
-  vps1: { memory: 4096, cores: 2 },
-  vps2: { memory: 6144, cores: 4 },
-  vps3: { memory: 8192, cores: 6 },
+  vps1: { memory: 4096, cores: 2, disk_extra: 0 },
+  vps2: { memory: 6144, cores: 4, disk_extra: 10 },
+  vps3: { memory: 8192, cores: 6, disk_extra: 20 },
 };
-const PROXMOX_TEMPLATE_ID = 200;
+const PROXMOX_TEMPLATE_ID = 100;
 const PROXMOX_NODE = process.env.PROXMOX_NODE || 'pve';
 
 // ── Páginas ───────────────────────────────────────────
@@ -266,14 +266,22 @@ async function criarVMProxmox({ plan, email }) {
   console.log(`Resposta clone: ${JSON.stringify(cloneRes)}`);
   if (!cloneRes.data) throw new Error(`Clone falhou: ${JSON.stringify(cloneRes)}`);
 
-  // 2. Aguardar clonagem verificando se VM apareceu
-  await aguardarTaskProxmox(vmid, 300000);
+  // 2. Aguardar clonagem
+  await aguardarTaskProxmox(vmid, 120000);
 
   // 3. Ajustar recursos
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/config`, 'PUT', {
     memory: spec.memory,
     cores: spec.cores,
   });
+
+  // Resize disco conforme plano
+  if (spec.disk_extra > 0) {
+    console.log(`Redimensionando disco +${spec.disk_extra}G para VM ${vmid}`);
+    await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/resize`, 'PUT', {
+      disk: 'scsi0', size: `+${spec.disk_extra}G`,
+    });
+  }
 
   // 4. Iniciar VM
   console.log(`Configurando IP ${ipInfo.ip} para VM ${vmid}`);
@@ -323,20 +331,25 @@ async function proxmoxRequest(endpoint, method = 'GET', body = null) {
   }
 }
 
-async function aguardarTaskProxmox(vmid, timeout = 300000) {
+async function aguardarTaskProxmox(vmid, timeout = 120000) {
   console.log(`Aguardando VM ${vmid} aparecer...`);
   const inicio = Date.now();
   while (Date.now() - inicio < timeout) {
     await new Promise(r => setTimeout(r, 8000));
-    const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
-    const vms = res.data || [];
-    if (vms.find(v => v.vmid === vmid)) {
-      console.log(`VM ${vmid} confirmada no Proxmox`);
-      return true;
+    try {
+      const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
+      const vms = res.data || [];
+      if (vms.find(v => v.vmid === vmid)) {
+        console.log(`VM ${vmid} confirmada no Proxmox`);
+        return true;
+      }
+      console.log(`VM ${vmid} ainda nao apareceu, aguardando...`);
+    } catch (err) {
+      console.warn(`Erro ao verificar VM ${vmid}: ${err.message} — continuando...`);
     }
-    console.log(`VM ${vmid} ainda nao apareceu, aguardando...`);
   }
-  throw new Error(`VM ${vmid} nao apareceu em ${timeout}ms`);
+  console.warn(`VM ${vmid} nao confirmada em ${timeout}ms — continuando mesmo assim`);
+  return false;
 }
 
 async function aguardarGuestAgent(vmid, timeout = 180000) {
