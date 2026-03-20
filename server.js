@@ -41,7 +41,7 @@ const PROXMOX_SPECS = {
   vps3: { memory: 8192, cores: 6, disk_extra: 20 },
 };
 const PROXMOX_TEMPLATE_ID = 203;
-const PROXMOX_NODE = process.env.PROXMOX_NODE || 'pve';
+const PROXMOX_NODE = process.env.PROXMOX_NODE || 'm5527';
 
 // ── Páginas ───────────────────────────────────────────
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -297,7 +297,7 @@ async function criarVMProxmox({ plan, email }) {
 
   // 7. Criar arquivo de configuração na VM
   console.log(`Configurando IP ${ipInfo.ip} para VM ${vmid}`);
-  const vmconfigCmd = `Set-Content -Path 'C:\WiikFX\vmconfig.txt' -Value @('IP=${ipInfo.ip}', 'GATEWAY=${ipInfo.gateway}', 'NETMASK=${ipInfo.netmask}', 'SENHA=${senha}')`;
+  const vmconfigCmd = `Set-Content -Path 'C:\\WiikFX\\vmconfig.txt' -Value @('IP=${ipInfo.ip}', 'GATEWAY=${ipInfo.gateway}', 'NETMASK=${ipInfo.netmask}', 'SENHA=${senha}')`;
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
     'input-data': vmconfigCmd,
@@ -308,7 +308,7 @@ async function criarVMProxmox({ plan, email }) {
   // 8. Executar script de setup
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/agent/exec`, 'POST', {
     command: 'powershell',
-    'input-data': '-ExecutionPolicy Bypass -File C:\WiikFX\SetupVM.ps1',
+    'input-data': '-ExecutionPolicy Bypass -File C:\\WiikFX\\SetupVM.ps1',
   });
 
   await new Promise(r => setTimeout(r, 5000));
