@@ -181,8 +181,8 @@ app.post('/api/checkout/avulso', async (req, res) => {
         items: [{ title: `${plano.name} — ${PERIOD_LABEL[period]}`, quantity: 1, unit_price: preco, currency_id: 'BRL' }],
         payer: { name: nome, email },
         metadata: { plan, period, nome, email, whatsapp },
-        back_urls: { success: `${BASE_URL}/sucesso`, failure: `${BASE_URL}/vps`, pending: `${BASE_URL}/pendente` },
-        auto_return: 'approved',
+        back_urls: { success: `${BASE_URL}/sucesso`, failure: `${BASE_URL}/vps`, pending: `${BASE_URL}/sucesso` },
+        auto_return: 'all',
         notification_url: `${BASE_URL}/api/webhook/mercadopago`,
         payment_methods: { installments: 1 },
       }
