@@ -329,13 +329,15 @@ function proxmoxConfigurado() {
 
 async function proxmoxRequest(endpoint, method = 'GET', body = null) {
   const url = `${process.env.PROXMOX_HOST}/api2/json${endpoint}`;
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `PVEAPIToken=${process.env.PROXMOX_USER}!${process.env.PROXMOX_TOKEN_ID}=${process.env.PROXMOX_TOKEN_SECRET}`,
-  };
-  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
+  const headers = { Authorization: `PVEAPIToken=${process.env.PROXMOX_USER}!${process.env.PROXMOX_TOKEN_ID}=${process.env.PROXMOX_TOKEN_SECRET}` };
+  const options = { method, headers };
+  if (body) {
+    headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(body);
+  }
+  const res = await fetch(url, options);
   const text = await res.text();
-  console.log(`Proxmox ${method} ${endpoint} status=${res.status} body=${text.slice(0, 300)}`);
+  console.log(`Proxmox ${method} ${endpoint} status=${res.status} body=${text.slice(0, 200)}`);
   if (!text || text.trim() === '') return {};
   try {
     return JSON.parse(text);
