@@ -222,6 +222,13 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
 
 // ── Ativar VPS ────────────────────────────────────────
 async function ativarVPS({ plan, period = 'mensal', nome, email, whatsapp, mpPaymentId, valor }) {
+  // Deduplicar — ignorar se pagamento ja foi processado
+  const { pool } = require('./db');
+  const jaProcessado = await pool.query('SELECT id FROM pagamentos WHERE mp_payment_id = $1', [String(mpPaymentId)]);
+  if (jaProcessado.rows.length > 0) {
+    console.log(`Pagamento ${mpPaymentId} ja processado — ignorando duplicata`);
+    return;
+  }
   console.log(`Ativando VPS ${plan} (${period}) para ${email}`);
   const plano = PLANS[plan];
   const cliente = await upsertCliente({ nome, email, whatsapp });
@@ -286,11 +293,12 @@ async function criarVMProxmox({ plan, email }) {
 
   // 4. Iniciar VM
   console.log(`Iniciando VM ${vmid}...`);
-  await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
+  const startRes = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
+  console.log(`Start response: ${JSON.stringify(startRes)}`);
 
-  // 5. Aguardar VM ligar (30s fixo antes de tentar guest agent)
+  // 5. Aguardar VM ligar (60s fixo antes de tentar guest agent)
   console.log(`Aguardando VM ${vmid} ligar...`);
-  await new Promise(r => setTimeout(r, 30000));
+  await new Promise(r => setTimeout(r, 60000));
 
   // 6. Aguardar guest agent
   await aguardarGuestAgent(vmid, 180000);
@@ -398,10 +406,10 @@ async function enviarEmailBoasVindas({ nome, email, plan, vmInfo }) {
         <p style="font-size:.85rem;color:#aaa;margin:0;line-height:1.6;"><strong style="color:#5CBF8A">Como conectar:</strong> Abra "Conexao de Area de Trabalho Remota", digite o IP e faca login com as credenciais acima.</p>
       </div>
       <div style="background:rgba(27,77,62,0.15);border:1px solid rgba(92,191,138,0.1);border-radius:10px;padding:16px;margin-bottom:24px;text-align:center;">
-        <p style="font-size:.9rem;color:#aaa;margin:0 0 12px;">Acesse sua área de cliente para ver detalhes da sua VPS, reiniciar o servidor e gerenciar sua conta.</p>
-        <a href="${BASE_URL}/portal" style="display:inline-block;background:#5CBF8A;color:#050505;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:.9rem;">Acessar minha área de cliente</a>
-    </div>
-        <p style="color:#555;font-size:.8rem;text-align:center;">Suporte: <a href="https://t.me/WiikFX" style="color:#5CBF8A;">t.me/WiikFX</a></p>
+        <p style="font-size:.9rem;color:#aaa;margin:0 0 12px;">Acesse sua area de cliente para ver detalhes da sua VPS, reiniciar o servidor e gerenciar sua conta.</p>
+        <a href="${BASE_URL}/portal" style="display:inline-block;background:#5CBF8A;color:#050505;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:.9rem;">Acessar minha area de cliente</a>
+      </div>
+      <p style="color:#555;font-size:.8rem;text-align:center;">Suporte: <a href="https://t.me/WiikFX" style="color:#5CBF8A;">t.me/WiikFX</a></p>
     `),
   });
 }
