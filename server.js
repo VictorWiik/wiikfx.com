@@ -15,6 +15,9 @@ const {
 
 const crypto = require('crypto');
 const app = express();
+
+// Mutex para evitar processamento simultâneo de webhooks
+const processingPayments = new Set();
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || 'https://wiikfx.com';
 
@@ -223,22 +226,27 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
 // ── Ativar VPS ────────────────────────────────────────
 async function ativarVPS({ plan, period = 'mensal', nome, email, whatsapp, mpPaymentId, valor }) {
   const { pool } = require('./db');
+  const paymentKey = String(mpPaymentId);
 
-  // Deduplicar — verificar se pagamento ja foi processado
+  // Mutex em memória — bloqueia processamento simultâneo
+  if (processingPayments.has(paymentKey)) {
+    console.log(`Pagamento ${paymentKey} ja esta sendo processado — ignorando duplicata`);
+    return;
+  }
+  processingPayments.add(paymentKey);
+
   try {
+    // Verificar no banco também
     const jaProcessado = await pool.query(
       'SELECT id FROM pagamentos WHERE mp_payment_id = $1',
-      [String(mpPaymentId)]
+      [paymentKey]
     );
     if (jaProcessado.rows.length > 0) {
-      console.log(`Pagamento ${mpPaymentId} ja processado — ignorando duplicata`);
+      console.log(`Pagamento ${paymentKey} ja processado no banco — ignorando`);
       return;
     }
-  } catch (err) {
-    console.error('Erro ao verificar duplicata:', err.message);
-  }
 
-  console.log(`Ativando VPS ${plan} (${period}) para ${email}`);
+    console.log(`Ativando VPS ${plan} (${period}) para ${email}`);
   const plano = PLANS[plan];
   const cliente = await upsertCliente({ nome, email, whatsapp });
   const vmInfo = await criarVMProxmox({ plan, email });
@@ -249,7 +257,10 @@ async function ativarVPS({ plan, period = 'mensal', nome, email, whatsapp, mpPay
   });
   await registrarPagamento({ vmId: vm.id, clienteId: cliente.id, mpPaymentId, mpPreapprovalId: null, tipo: period, status: 'aprovado', valor });
   await enviarEmailBoasVindas({ nome, email, plan: plano, vmInfo });
-  console.log(`VPS ativada — ${email} — IP: ${vmInfo.ip}`);
+    console.log(`VPS ativada — ${email} — IP: ${vmInfo.ip}`);
+  } finally {
+    processingPayments.delete(paymentKey);
+  }
 }
 
 // ── Criar VM no Proxmox ───────────────────────────────
