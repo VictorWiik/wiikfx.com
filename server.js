@@ -32,16 +32,16 @@ function hashSenha(senha) {
 }
 
 const PLANS = {
-  vps1: { name: 'WiikFX VPS-1', ram: '4GB', cpu: '2 vCPUs', disk: '40GB SSD', prices: { mensal: 87.00, trimestral: 234.90, anual: 885.60 } },
-  vps2: { name: 'WiikFX VPS-2', ram: '6GB', cpu: '4 vCPUs', disk: '50GB SSD', prices: { mensal: 127.00, trimestral: 342.90, anual: 1295.40 } },
+  vps1: { name: 'WiikFX VPS-1', ram: '4GB', cpu: '2 vCPUs', disk: '60GB SSD', prices: { mensal: 87.00, trimestral: 234.90, anual: 885.60 } },
+  vps2: { name: 'WiikFX VPS-2', ram: '6GB', cpu: '4 vCPUs', disk: '60GB SSD', prices: { mensal: 127.00, trimestral: 342.90, anual: 1295.40 } },
   vps3: { name: 'WiikFX VPS-3', ram: '8GB', cpu: '6 vCPUs', disk: '60GB SSD', prices: { mensal: 197.00, trimestral: 531.90, anual: 2009.40 } },
 };
 const PERIOD_LABEL = { mensal: 'Mensal', trimestral: 'Trimestral', anual: 'Anual' };
 const PERIOD_MONTHS = { mensal: 1, trimestral: 3, anual: 12 };
 const PROXMOX_SPECS = {
   vps1: { memory: 4096, cores: 2, disk_extra: 0 },
-  vps2: { memory: 6144, cores: 4, disk_extra: 10 },
-  vps3: { memory: 8192, cores: 6, disk_extra: 20 },
+  vps2: { memory: 6144, cores: 4, disk_extra: 0 },
+  vps3: { memory: 8192, cores: 6, disk_extra: 0 },
 };
 const PROXMOX_TEMPLATE_ID = 203;
 const PROXMOX_NODE = process.env.PROXMOX_NODE || 'm5527';
