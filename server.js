@@ -223,32 +223,19 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
 // ── Ativar VPS ────────────────────────────────────────
 async function ativarVPS({ plan, period = 'mensal', nome, email, whatsapp, mpPaymentId, valor }) {
   const { pool } = require('./db');
-  
-  // Deduplicar com lock para evitar race condition
-  const client = await pool.connect();
+
+  // Deduplicar — verificar se pagamento ja foi processado
   try {
-    await client.query('BEGIN');
-    const jaProcessado = await client.query(
-      'SELECT id FROM pagamentos WHERE mp_payment_id = $1 FOR UPDATE',
+    const jaProcessado = await pool.query(
+      'SELECT id FROM pagamentos WHERE mp_payment_id = $1',
       [String(mpPaymentId)]
     );
     if (jaProcessado.rows.length > 0) {
-      await client.query('ROLLBACK');
       console.log(`Pagamento ${mpPaymentId} ja processado — ignorando duplicata`);
       return;
     }
-    // Inserir registro placeholder imediatamente para bloquear duplicata
-    await client.query(
-      'INSERT INTO pagamentos (mp_payment_id, status, tipo, valor) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
-      [String(mpPaymentId), 'processando', period || 'mensal', valor || 0]
-    );
-    await client.query('COMMIT');
   } catch (err) {
-    await client.query('ROLLBACK');
     console.error('Erro ao verificar duplicata:', err.message);
-    return;
-  } finally {
-    client.release();
   }
 
   console.log(`Ativando VPS ${plan} (${period}) para ${email}`);
