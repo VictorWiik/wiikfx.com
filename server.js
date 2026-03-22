@@ -53,6 +53,7 @@ app.get('/sucesso', (req, res) => res.sendFile(path.join(__dirname, 'public', 's
 app.get('/pendente', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pendente.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/definir-senha', (req, res) => res.sendFile(path.join(__dirname, 'public', 'definir-senha.html')));
+app.get('/termos', (req, res) => res.sendFile(path.join(__dirname, 'public', 'termos.html')));
 app.get('/portal', async (req, res) => {
   const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
   if (!sessao) return res.redirect('/login');
