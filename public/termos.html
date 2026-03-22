@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termos de Serviço — WiikFX Forex Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --verde: #5CBF8A;
+  --verde-escuro: #1B4D3E;
+  --preto: #050505;
+  --cinza: #888;
+  --branco: #f5f5f0;
+  --border: rgba(92,191,138,0.15);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--preto);
+  color: var(--branco);
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  line-height: 1.8;
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(5,5,5,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo { font-size: 1.5rem; font-weight: 700; }
+.logo span:first-child { color: var(--verde-escuro); }
+.logo span:last-child { color: var(--verde); }
+.header-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  color: var(--verde);
+  background: rgba(92,191,138,0.08);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 100px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 60px 24px 100px;
+}
+.doc-header {
+  text-align: center;
+  margin-bottom: 60px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--border);
+}
+.doc-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--branco), var(--verde));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.doc-meta {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.doc-meta span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .78rem;
+  color: var(--cinza);
+}
+.doc-meta strong { color: var(--verde); }
+.toc {
+  background: rgba(27,77,62,0.12);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 48px;
+}
+.toc h3 {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--verde);
+  margin-bottom: 16px;
+}
+.toc ol {
+  columns: 2;
+  column-gap: 32px;
+  padding-left: 20px;
+}
+.toc li {
+  font-size: .88rem;
+  color: var(--cinza);
+  margin-bottom: 6px;
+  break-inside: avoid;
+}
+.toc a { color: var(--cinza); text-decoration: none; transition: color .2s; }
+.toc a:hover { color: var(--verde); }
+.intro {
+  background: rgba(92,191,138,0.05);
+  border-left: 3px solid var(--verde);
+  padding: 20px 24px;
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 48px;
+  font-size: .93rem;
+  color: #bbb;
+  line-height: 1.9;
+}
+section {
+  margin-bottom: 48px;
+  scroll-margin-top: 80px;
+}
+section h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--verde);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+section h2 .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .75rem;
+  background: rgba(92,191,138,0.12);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: var(--verde);
+}
+p { color: #ccc; margin-bottom: 12px; }
+ul, ol { padding-left: 20px; color: #ccc; margin-bottom: 12px; }
+li { margin-bottom: 6px; }
+strong { color: var(--branco); }
+.highlight {
+  background: rgba(92,191,138,0.08);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  color: #ccc;
+}
+.contacts {
+  background: rgba(27,77,62,0.2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+}
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(92,191,138,0.06);
+}
+.contact-item:last-child { border-bottom: none; }
+.contact-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .78rem;
+  color: var(--verde);
+  min-width: 100px;
+}
+.contact-value { color: var(--branco); font-size: .93rem; }
+.doc-footer {
+  margin-top: 60px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.doc-footer p { font-size: .82rem; color: #555; }
+.doc-footer strong { color: var(--verde); }
+.acceptance {
+  background: rgba(92,191,138,0.06);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-top: 24px;
+  font-size: .88rem;
+  color: #888;
+  font-style: italic;
+}
+@media(max-width:640px){
+  header { padding: 14px 20px; }
+  .container { padding: 40px 16px 80px; }
+  .doc-header h1 { font-size: 1.6rem; }
+  .toc ol { columns: 1; }
+  .doc-meta { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>Wiik</span><span>FX</span></div>
+  <span class="header-tag">Termos de Serviço</span>
+</header>
+
+<div class="container">
+
+  <div class="doc-header">
+    <h1>Termos e Condições de Uso</h1>
+    <p style="color:var(--cinza);font-size:.93rem;">WiikFX Forex Solutions</p>
+    <div class="doc-meta">
+      <span>Última atualização: <strong>21 de março de 2026</strong></span>
+      <span>CPF: <strong>098.606.177-83</strong></span>
+      <span>Responsável: <strong>Victor Correa Wiik</strong></span>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h3>Índice</h3>
+    <ol>
+      <li><a href="#s1">Definições</a></li>
+      <li><a href="#s2">Cadastro do Usuário</a></li>
+      <li><a href="#s3">Senhas e Segurança</a></li>
+      <li><a href="#s4">Serviços de Hospedagem VPS</a></li>
+      <li><a href="#s5">Preços e Pagamento</a></li>
+      <li><a href="#s6">Atraso no Pagamento</a></li>
+      <li><a href="#s7">Política de Reembolso</a></li>
+      <li><a href="#s8">Cancelamento</a></li>
+      <li><a href="#s9">Acordo de Nível de Serviço</a></li>
+      <li><a href="#s12">Políticas de Conteúdo</a></li>
+      <li><a href="#s13">Limitação de Responsabilidade</a></li>
+      <li><a href="#s15">Proteção de Dados (LGPD)</a></li>
+      <li><a href="#s17">Legislação e Foro</a></li>
+      <li><a href="#s18">Canais de Atendimento</a></li>
+    </ol>
+  </div>
+
+  <div class="intro">
+    Ao contratar qualquer serviço oferecido pela <strong>WiikFX Forex Solutions</strong>, o USUÁRIO automaticamente concorda com os Termos de Serviço descritos abaixo. A <strong>WiikFX Forex Solutions</strong> reserva-se o direito de alterar os presentes termos a qualquer momento, mediante notificação prévia ao USUÁRIO com pelo menos 30 (trinta) dias de antecedência. Caso o USUÁRIO não concorde com as alterações propostas, terá a opção de encerrar sua assinatura antes que as alterações entrem em vigor.
+  </div>
+
+  <section id="s1">
+    <h2><span class="num">01</span> Definições</h2>
+    <p><strong>1.1. WiikFX Forex Solutions</strong>: pessoa física inscrita no CPF sob o n.º 098.606.177-83, responsável pela prestação dos serviços objeto do presente instrumento.</p>
+    <p><strong>1.2. USUÁRIO</strong>: pessoa física ou jurídica, prévia e obrigatoriamente cadastrada na plataforma da WiikFX Forex Solutions, que contrata os serviços prestados.</p>
+    <p><strong>1.3. SERVIÇOS</strong>: serviços de hospedagem de dados na modalidade VPS (Virtual Private Server) e/ou Cloud, bem como outros serviços que venham a ser disponibilizados pela WiikFX Forex Solutions.</p>
+    <p><strong>1.4. CONTEÚDOS</strong>: todos os dados, arquivos, aplicações e informações do USUÁRIO hospedados em servidores administrados pela WiikFX Forex Solutions.</p>
+    <p><strong>1.5. PLANO DE SERVIÇO</strong>: modalidade de contratação escolhida pelo USUÁRIO (mensal, trimestral ou anual), com valores, especificações técnicas e condições comerciais descritos no ato da contratação.</p>
+    <p><strong>1.6. PAINEL DO CLIENTE</strong>: plataforma web disponível em <strong>wiikfx.com/portal</strong>, através da qual o USUÁRIO poderá realizar cadastro, contratar serviços, gerenciar suas assinaturas e acessar o suporte.</p>
+  </section>
+
+  <section id="s2">
+    <h2><span class="num">02</span> Cadastro do Usuário</h2>
+    <p><strong>2.1.</strong> Para contratar os serviços, o USUÁRIO deverá obrigatoriamente realizar cadastro prévio na plataforma, fornecendo informações válidas e corretas.</p>
+    <p><strong>2.2.</strong> O USUÁRIO declara que possui, na data do cadastro, idade mínima de 18 (dezoito) anos.</p>
+    <p><strong>2.3.</strong> O USUÁRIO compromete-se a fornecer informações verdadeiras no ato do cadastro, incluindo: nome completo, CPF/CNPJ, endereço de e-mail válido e número de telefone.</p>
+    <p><strong>2.4.</strong> É de responsabilidade exclusiva do USUÁRIO a veracidade dos dados cadastrados. Em caso de dados falsos ou fraudulentos, a WiikFX Forex Solutions reserva-se o direito de suspender ou cancelar o cadastro e os serviços, sem aviso prévio e sem direito a reembolso.</p>
+    <p><strong>2.5.</strong> A WiikFX Forex Solutions poderá solicitar, a qualquer tempo, documentos que comprovem a identidade do USUÁRIO. A recusa em fornecê-los poderá resultar na suspensão ou cancelamento dos serviços.</p>
+  </section>
+
+  <section id="s3">
+    <h2><span class="num">03</span> Senhas e Segurança da Conta</h2>
+    <p><strong>3.1.</strong> O USUÁRIO é o único responsável pela guarda e utilização do login e senha de acesso ao Painel do Cliente e aos serviços contratados.</p>
+    <p><strong>3.2.</strong> O login e a senha são pessoais e intransferíveis.</p>
+    <p><strong>3.3.</strong> Recomenda-se que o USUÁRIO altere periodicamente suas senhas e evite senhas de fácil identificação.</p>
+    <p><strong>3.4.</strong> A WiikFX Forex Solutions não se responsabiliza por acessos não autorizados decorrentes de negligência do USUÁRIO na proteção de suas credenciais.</p>
+  </section>
+
+  <section id="s4">
+    <h2><span class="num">04</span> Serviços de Hospedagem VPS</h2>
+    <p><strong>4.1.</strong> Os serviços são prestados conforme as especificações técnicas e comerciais descritas no Plano de Serviço contratado pelo USUÁRIO.</p>
+    <p><strong>4.2.</strong> O acesso aos conteúdos hospedados se dá exclusivamente de forma remota via internet. Serviços de telecomunicações e conexão à internet são de responsabilidade exclusiva do USUÁRIO.</p>
+    <p><strong>4.3.</strong> Os serviços são classificados como <strong>"Não Gerenciáveis"</strong>, o que significa que a configuração, instalação de softwares e manutenção do ambiente dentro do servidor contratado são de responsabilidade exclusiva do USUÁRIO.</p>
+    <p><strong>4.4.</strong> O USUÁRIO é integralmente responsável pelos conteúdos hospedados, devendo realizar backups periódicos de seus dados.</p>
+    <p><strong>4.5.</strong> A WiikFX Forex Solutions poderá utilizar o mesmo servidor físico para hospedar conteúdos de múltiplos USUÁRIOS, não havendo exclusividade.</p>
+  </section>
+
+  <section id="s5">
+    <h2><span class="num">05</span> Preços e Pagamento</h2>
+    <p><strong>5.1.</strong> Pela prestação dos serviços, o USUÁRIO pagará os valores indicados no Plano de Serviço selecionado no ato da contratação.</p>
+    <p><strong>5.2.</strong> A WiikFX Forex Solutions reserva-se o direito de atualizar os preços a qualquer momento. Alterações para clientes já existentes serão comunicadas com pelo menos 30 (trinta) dias de antecedência.</p>
+    <p><strong>5.3.</strong> A cobrança é realizada em caráter <strong>antecipado</strong>, ou seja, antes da prestação do serviço para o ciclo correspondente.</p>
+    <p><strong>5.4.</strong> As formas de pagamento aceitas são: PIX, cartão de crédito e boleto bancário.</p>
+    <p><strong>5.5.</strong> Não são realizadas cobranças automáticas sem autorização prévia do USUÁRIO.</p>
+  </section>
+
+  <section id="s6">
+    <h2><span class="num">06</span> Atraso no Pagamento</h2>
+    <div class="highlight">
+      <p><strong>6.1.</strong> Em caso de atraso, será cobrada multa de <strong>2%</strong> sobre o valor em aberto, acrescida de juros de <strong>0,033% ao dia</strong>, conforme Art. 52 da Lei nº 8.078/1990 (CDC).</p>
+    </div>
+    <p><strong>6.2. Suspensão</strong>: os serviços serão suspensos após o <strong>4º dia corrido</strong> de atraso.</p>
+    <p><strong>6.3. Exclusão</strong>: após <strong>30 dias corridos</strong> de atraso, o serviço será encerrado e os dados serão permanentemente excluídos.</p>
+  </section>
+
+  <section id="s7">
+    <h2><span class="num">07</span> Política de Reembolso</h2>
+    <p><strong>7.1.</strong> Em conformidade com o Art. 49 do Código de Defesa do Consumidor, o USUÁRIO poderá solicitar reembolso integral no prazo máximo de <strong>7 (sete) dias corridos</strong> a partir da data da contratação.</p>
+    <p><strong>7.2.</strong> Esgotado o prazo de 7 dias, <strong>não será efetuado reembolso</strong> seja parcial ou total.</p>
+    <p><strong>7.3.</strong> Em caso de suspensão ou cancelamento por violação dos Termos de Serviço, o direito a reembolso é automaticamente anulado, ainda que dentro do prazo de 7 dias.</p>
+    <p><strong>7.4.</strong> O reembolso, quando aprovado, será processado em até <strong>3 (três) dias úteis</strong>.</p>
+    <p><strong>7.5.</strong> O pedido de reembolso deve ser realizado exclusivamente através dos canais de atendimento oficiais.</p>
+  </section>
+
+  <section id="s8">
+    <h2><span class="num">08</span> Cancelamento</h2>
+    <p><strong>8.1.</strong> O USUÁRIO pode solicitar o cancelamento de sua assinatura a qualquer momento, através dos canais de atendimento oficiais.</p>
+    <p><strong>8.2.</strong> O cancelamento resultará na <strong>exclusão total dos dados</strong> armazenados, sem possibilidade de recuperação.</p>
+    <p><strong>8.3.</strong> O USUÁRIO deverá realizar o backup de todos os seus conteúdos antes de solicitar o cancelamento.</p>
+  </section>
+
+  <section id="s9">
+    <h2><span class="num">09</span> Acordo de Nível de Serviço (SLA)</h2>
+    <p><strong>9.1.</strong> A WiikFX Forex Solutions compromete-se a manter uma disponibilidade média dos serviços de <strong>99,8% ao mês</strong>.</p>
+    <p><strong>9.2.</strong> Manutenções programadas serão comunicadas com antecedência mínima de 24 horas e não serão contabilizadas como downtime.</p>
+    <p><strong>9.3.</strong> Em caso de indisponibilidade não programada superior ao SLA contratado, o USUÁRIO poderá solicitar crédito proporcional ao período de downtime.</p>
+  </section>
+
+  <section id="s12">
+    <h2><span class="num">10</span> Políticas de Conteúdo e Utilização</h2>
+    <p><strong>10.1.</strong> É <strong>proibida</strong> a utilização dos serviços para os seguintes fins:</p>
+    <ul>
+      <li>Armazenamento ou distribuição de conteúdo protegido por direitos autorais sem autorização;</li>
+      <li>Armazenamento ou distribuição de conteúdo malicioso, phishing ou vírus;</li>
+      <li>Armazenamento ou distribuição de conteúdo pornográfico infantil;</li>
+      <li>Execução de ataques hackers de qualquer natureza contra terceiros;</li>
+      <li>Envio de SPAM ou mala direta não solicitada;</li>
+      <li>Qualquer atividade que infrinja a legislação brasileira ou internacional vigente.</li>
+    </ul>
+    <p><strong>10.2.</strong> Ao infringir qualquer política de conteúdo, o USUÁRIO estará sujeito à suspensão e/ou cancelamento total do serviço, sem direito a reembolso.</p>
+  </section>
+
+  <section id="s13">
+    <h2><span class="num">11</span> Limitação de Responsabilidade</h2>
+    <p><strong>11.1.</strong> A WiikFX Forex Solutions não se responsabiliza por:</p>
+    <ul>
+      <li>Perda de dados do USUÁRIO por falta de backup;</li>
+      <li>Falhas em software de terceiros instalado pelo USUÁRIO;</li>
+      <li>Interrupções causadas por falhas nos serviços de telecomunicações contratados pelo USUÁRIO;</li>
+      <li>Invasões por agentes maliciosos decorrentes de negligência do USUÁRIO;</li>
+      <li>Danos causados a terceiros em razão dos conteúdos hospedados pelo USUÁRIO.</li>
+    </ul>
+    <p><strong>11.2.</strong> A responsabilidade da WiikFX Forex Solutions limita-se a danos diretos devidamente comprovados, limitada ao valor de <strong>6 (seis) mensalidades</strong> do serviço contratado.</p>
+  </section>
+
+  <section id="s15">
+    <h2><span class="num">12</span> Proteção de Dados (LGPD)</h2>
+    <p><strong>12.1.</strong> A WiikFX Forex Solutions compromete-se a cumprir todas as obrigações previstas na Lei nº 13.709/2018 (LGPD).</p>
+    <p><strong>12.2.</strong> Os dados pessoais coletados são utilizados exclusivamente para: prestação dos serviços contratados, cumprimento de obrigações legais, proteção do crédito e comunicações relacionadas aos serviços.</p>
+    <p><strong>12.3.</strong> O USUÁRIO tem direito a acessar, retificar, excluir e solicitar a portabilidade de seus dados pessoais a qualquer momento.</p>
+    <p><strong>12.4.</strong> Os dados pessoais serão mantidos por <strong>5 (cinco) anos</strong> após o encerramento da relação contratual.</p>
+    <p><strong>12.5.</strong> Para exercer seus direitos de privacidade, o USUÁRIO deverá entrar em contato pelo e-mail <strong>wiikfx@wiikfx.com</strong>.</p>
+  </section>
+
+  <section id="s17">
+    <h2><span class="num">13</span> Legislação e Foro</h2>
+    <p><strong>13.1.</strong> O presente instrumento será regido e interpretado de acordo com as leis da República Federativa do Brasil.</p>
+    <p><strong>13.2.</strong> As partes elegem o Foro da Comarca de <strong>Juiz de Fora/MG</strong> como competente para dirimir quaisquer dúvidas ou litígios decorrentes deste instrumento.</p>
+  </section>
+
+  <section id="s18">
+    <h2><span class="num">14</span> Canais de Atendimento</h2>
+    <div class="contacts">
+      <div class="contact-item">
+        <span class="contact-label">E-mail</span>
+        <span class="contact-value">wiikfx@wiikfx.com</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">Suporte</span>
+        <span class="contact-value">wiikfx@wiikfx.com</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">WhatsApp</span>
+        <span class="contact-value">(32) 99916-7538</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">Painel</span>
+        <span class="contact-value">wiikfx.com/portal</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="doc-footer">
+    <p><strong>WiikFX Forex Solutions</strong></p>
+    <p>CPF: 098.606.177-83 — Victor Correa Wiik</p>
+    <p style="margin-top:8px;font-size:.75rem;">Atualizado em 21 de março de 2026</p>
+    <div class="acceptance">
+      Ao utilizar nossos serviços, você declara ter lido e concordado integralmente com estes Termos e Condições de Uso.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
