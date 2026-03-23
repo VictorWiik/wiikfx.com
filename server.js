@@ -33,16 +33,16 @@ function hashSenha(senha) {
 }
 
 const PLANS = {
-  vps1: { name: 'WiikFX VPS-1', ram: '6GB', cpu: '4 vCPUs', disk: '80GB SSD', prices: { mensal: 97.00, trimestral: 261.90, anual: 988.20 } },
-  vps2: { name: 'WiikFX VPS-2', ram: '8GB', cpu: '6 vCPUs', disk: '80GB SSD', prices: { mensal: 137.00, trimestral: 369.90, anual: 1397.40 } },
-  vps3: { name: 'WiikFX VPS-3', ram: '12GB', cpu: '8 vCPUs', disk: '80GB SSD', prices: { mensal: 207.00, trimestral: 558.90, anual: 2111.40 } },
+  vps1: { name: 'WiikFX VPS-1', ram: '6GB', cpu: '4 vCPUs', disk: '60GB SSD', prices: { mensal: 97.00, trimestral: 261.90, anual: 988.20 } },
+  vps2: { name: 'WiikFX VPS-2', ram: '8GB', cpu: '6 vCPUs', disk: '60GB SSD', prices: { mensal: 137.00, trimestral: 369.90, anual: 1397.40 } },
+  vps3: { name: 'WiikFX VPS-3', ram: '12GB', cpu: '8 vCPUs', disk: '60GB SSD', prices: { mensal: 207.00, trimestral: 558.90, anual: 2111.40 } },
 };
 const PERIOD_LABEL = { mensal: 'Mensal', trimestral: 'Trimestral', anual: 'Anual' };
 const PERIOD_MONTHS = { mensal: 1, trimestral: 3, anual: 12 };
 const PROXMOX_SPECS = {
-  vps1: { memory: 6144, cores: 4, disk_extra: 20 },
-  vps2: { memory: 8192, cores: 6, disk_extra: 20 },
-  vps3: { memory: 12288, cores: 8, disk_extra: 20 },
+  vps1: { memory: 6144, cores: 4 },
+  vps2: { memory: 8192, cores: 6 },
+  vps3: { memory: 12288, cores: 8 },
 };
 const PROXMOX_TEMPLATE_ID = 203;
 const PROXMOX_NODE = process.env.PROXMOX_NODE || 'm5527';
@@ -303,15 +303,6 @@ async function criarVMProxmox({ plan, email }) {
     cores: spec.cores,
   });
 
-  // Resize disco conforme plano
-  if (spec.disk_extra > 0) {
-    console.log(`Redimensionando disco +${spec.disk_extra}G para VM ${vmid}`);
-    await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/resize`, 'PUT', {
-      disk: 'scsi0', size: `+${spec.disk_extra}G`,
-    });
-    await aguardarResizeCompleto(vmid, 60000);
-  }
-
   // 4. Iniciar VM
   console.log(`Iniciando VM ${vmid}...`);
   await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu/${vmid}/status/start`, 'POST');
@@ -418,23 +409,6 @@ async function aguardarTaskProxmox(vmid, timeout = 180000) {
   }
   console.warn(`VM ${vmid} nao ficou pronta em ${timeout}ms — continuando mesmo assim`);
   return false;
-}
-
-async function aguardarResizeCompleto(vmid, timeout = 60000) {
-  console.log(`Aguardando resize VM ${vmid}...`);
-  const inicio = Date.now();
-  while (Date.now() - inicio < timeout) {
-    await new Promise(r => setTimeout(r, 5000));
-    try {
-      const res = await proxmoxRequest(`/nodes/${PROXMOX_NODE}/qemu`);
-      const vm = (res.data || []).find(v => v.vmid === vmid);
-      if (vm && !vm.lock) {
-        console.log(`Resize VM ${vmid} concluido!`);
-        return true;
-      }
-    } catch {}
-  }
-  return true;
 }
 
 async function aguardarVMLigada(vmid, timeout = 120000) {
