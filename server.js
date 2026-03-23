@@ -11,6 +11,7 @@ const {
   criarVMBanco, registrarPagamento,
   getVMsByEmail, getPagamentosByClienteId,
   getIPDisponivel, marcarIPUsado, liberarIP,
+  criarTicket, getTicketsByClienteId, getTicketById, responderTicket, fecharTicket,
 } = require('./db');
 
 const crypto = require('crypto');
@@ -32,16 +33,16 @@ function hashSenha(senha) {
 }
 
 const PLANS = {
-  vps1: { name: 'WiikFX VPS-1', ram: '4GB', cpu: '2 vCPUs', disk: '60GB SSD', prices: { mensal: 87.00, trimestral: 234.90, anual: 885.60 } },
-  vps2: { name: 'WiikFX VPS-2', ram: '6GB', cpu: '4 vCPUs', disk: '60GB SSD', prices: { mensal: 127.00, trimestral: 342.90, anual: 1295.40 } },
-  vps3: { name: 'WiikFX VPS-3', ram: '8GB', cpu: '6 vCPUs', disk: '60GB SSD', prices: { mensal: 197.00, trimestral: 531.90, anual: 2009.40 } },
+  vps1: { name: 'WiikFX VPS-1', ram: '6GB', cpu: '4 vCPUs', disk: '80GB SSD', prices: { mensal: 97.00, trimestral: 261.90, anual: 988.20 } },
+  vps2: { name: 'WiikFX VPS-2', ram: '8GB', cpu: '6 vCPUs', disk: '80GB SSD', prices: { mensal: 137.00, trimestral: 369.90, anual: 1397.40 } },
+  vps3: { name: 'WiikFX VPS-3', ram: '12GB', cpu: '8 vCPUs', disk: '80GB SSD', prices: { mensal: 207.00, trimestral: 558.90, anual: 2111.40 } },
 };
 const PERIOD_LABEL = { mensal: 'Mensal', trimestral: 'Trimestral', anual: 'Anual' };
 const PERIOD_MONTHS = { mensal: 1, trimestral: 3, anual: 12 };
 const PROXMOX_SPECS = {
-  vps1: { memory: 4096, cores: 2, disk_extra: 0 },
-  vps2: { memory: 6144, cores: 4, disk_extra: 0 },
-  vps3: { memory: 8192, cores: 6, disk_extra: 0 },
+  vps1: { memory: 6144, cores: 4, disk_extra: 20 },
+  vps2: { memory: 8192, cores: 6, disk_extra: 20 },
+  vps3: { memory: 12288, cores: 8, disk_extra: 20 },
 };
 const PROXMOX_TEMPLATE_ID = 203;
 const PROXMOX_NODE = process.env.PROXMOX_NODE || 'm5527';
@@ -53,7 +54,6 @@ app.get('/sucesso', (req, res) => res.sendFile(path.join(__dirname, 'public', 's
 app.get('/pendente', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pendente.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/definir-senha', (req, res) => res.sendFile(path.join(__dirname, 'public', 'definir-senha.html')));
-app.get('/termos', (req, res) => res.sendFile(path.join(__dirname, 'public', 'termos.html')));
 app.get('/portal', async (req, res) => {
   const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
   if (!sessao) return res.redirect('/login');
@@ -543,6 +543,68 @@ app.get('/api/test-proxmox', async (req, res) => {
     token_id: process.env.PROXMOX_TOKEN_ID,
     token_secret_preview: process.env.PROXMOX_TOKEN_SECRET?.slice(0, 8) + '...',
   });
+});
+
+// ── Tickets ──────────────────────────────────────────
+app.get('/api/portal/tickets', async (req, res) => {
+  const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+  const tickets = await getTicketsByClienteId(sessao.cliente_id);
+  res.json(tickets);
+});
+
+app.post('/api/portal/tickets', async (req, res) => {
+  const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+  const { assunto, categoria, mensagem } = req.body;
+  if (!assunto || !mensagem) return res.status(400).json({ error: 'Assunto e mensagem obrigatorios' });
+  const ticket = await criarTicket({ clienteId: sessao.cliente_id, assunto, categoria, mensagem });
+  // Notificar por email
+  if (resend) {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'WiikFX <noreply@wiikfx.com>',
+      to: 'wiikfx@wiikfx.com',
+      subject: `[Ticket #${ticket.id}] ${assunto}`,
+      html: emailBase(`<h2 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">Novo ticket aberto</h2>
+        <p style="color:#888;margin-bottom:16px;">De: <strong style="color:#fff">${sessao.nome}</strong> (${sessao.email})</p>
+        <div style="background:#0d0d0d;border:1px solid rgba(92,191,138,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
+          <p style="color:#888;font-size:.8rem;margin-bottom:4px;">Assunto</p>
+          <p style="color:#fff;font-weight:600;">${assunto}</p>
+        </div>
+        <div style="background:#0d0d0d;border:1px solid rgba(92,191,138,0.2);border-radius:12px;padding:16px;">
+          <p style="color:#888;font-size:.8rem;margin-bottom:4px;">Mensagem</p>
+          <p style="color:#ccc;">${mensagem}</p>
+        </div>`),
+    }).catch(e => console.warn('Email ticket falhou:', e.message));
+  }
+  res.json(ticket);
+});
+
+app.get('/api/portal/tickets/:id', async (req, res) => {
+  const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+  const ticket = await getTicketById(req.params.id, sessao.cliente_id);
+  if (!ticket) return res.status(404).json({ error: 'Ticket nao encontrado' });
+  res.json(ticket);
+});
+
+app.post('/api/portal/tickets/:id/responder', async (req, res) => {
+  const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+  const { mensagem } = req.body;
+  if (!mensagem) return res.status(400).json({ error: 'Mensagem obrigatoria' });
+  const ticket = await getTicketById(req.params.id, sessao.cliente_id);
+  if (!ticket) return res.status(404).json({ error: 'Ticket nao encontrado' });
+  if (ticket.status === 'fechado') return res.status(400).json({ error: 'Ticket fechado' });
+  await responderTicket({ ticketId: req.params.id, clienteId: sessao.cliente_id, mensagem, autor: 'cliente' });
+  res.json({ ok: true });
+});
+
+app.post('/api/portal/tickets/:id/fechar', async (req, res) => {
+  const sessao = await validarSessao(parseCookie(req.headers.cookie)['wiikfx_session']);
+  if (!sessao) return res.status(401).json({ error: 'Nao autenticado' });
+  await fecharTicket(req.params.id, sessao.cliente_id);
+  res.json({ ok: true });
 });
 
 // ── Fallback ──────────────────────────────────────────
